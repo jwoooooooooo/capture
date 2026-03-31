@@ -364,7 +364,7 @@ function renderDrive() {
   const connected = document.getElementById('driveConnected');
   const guide = document.getElementById('driveSetupGuide');
 
-  if (driveConfig?.folderId) {
+  if (driveConfig?.connected) {
     connected.style.display = 'flex';
     guide.style.display = 'none';
     document.getElementById('driveFolderName').textContent = `폴더 ID: ${driveConfig.folderId}`;
@@ -375,17 +375,17 @@ function renderDrive() {
 }
 
 async function connectDrive() {
-  const folderId = document.getElementById('folderIdInput').value.trim();
-  if (!folderId) { showToast('폴더 ID를 입력해주세요', 'error'); return; }
-
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzb2CDFE3zQqBvvsOttfsQKhpyNbjlcIVhs9EUxNaPap0Qxe91HmRsIySaAJZQFZkk/exec';
+  
   try {
-    const { token } = await sendToExt({ type: 'GET_AUTH_TOKEN' });
-    if (!token) throw new Error('인증 실패');
+    // Apps Script 연결 테스트
+    const res = await fetch(APPS_SCRIPT_URL);
+    const data = await res.json();
+    if (!data.ok) throw new Error('Apps Script 응답 오류');
 
-    driveConfig = { folderId, accessToken: token };
-    await sendToExt({ type: 'SAVE_DRIVE_CONFIG', config: driveConfig });
+    driveConfig = { appsScriptUrl: APPS_SCRIPT_URL, connected: true };
     localStorage.setItem('sns_drive_config', JSON.stringify(driveConfig));
-    
+
     renderDrive();
     showToast('✅ Google Drive 연결 완료!');
   } catch (err) {
