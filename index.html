@@ -547,6 +547,13 @@ input::placeholder { color: var(--text3, #404060); }
 <!-- 토스트 -->
 <div id="toast"></div>
 
-<script src="app.js"></script>
+<script>
+// 캐시 무력화
+document.addEventListener('DOMContentLoaded', () => {
+  const s = document.createElement('script');
+  s.src = 'app.js?v=' + Date.now();
+  document.body.appendChild(s);
+});
+</script>
 </body>
 </html>
