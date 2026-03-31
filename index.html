@@ -3,366 +3,108 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SNS Monitor — 자동 캡처 관리</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>SNS Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=DM+Mono&display=swap" rel="stylesheet">
 <style>
-/* ── 리셋 & 변수 ─────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --bg: #080812;
-  --bg2: #0d0d20;
-  --bg3: #131328;
-  --panel: #161630;
-  --panel2: #1c1c3a;
-  --border: rgba(120,120,220,0.15);
-  --border2: rgba(120,120,220,0.25);
-  --accent: #5a6fff;
-  --accent2: #7c55e0;
-  --accent-glow: rgba(90,111,255,0.25);
-  --text: #d0d0f0;
-  --text2: #8080b0;
-  --text3: #5050808;
-  --success: #40e080;
-  --error: #ff5060;
-  --warn: #ffb040;
-  --mono: 'DM Mono', monospace;
-  --sans: 'Pretendard', 'Noto Sans KR', sans-serif;
-}
-
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
-  min-height: 100vh;
-  line-height: 1.5;
-  overflow-x: hidden;
-}
-
-/* ── 배경 효과 ───────────────────────────────────────── */
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background:
-    radial-gradient(ellipse 60% 40% at 20% 10%, rgba(90,111,255,0.08) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 60% at 80% 80%, rgba(124,85,224,0.06) 0%, transparent 60%);
-  pointer-events: none; z-index: 0;
-}
-
-/* ── 레이아웃 ────────────────────────────────────────── */
-.app { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px 60px; }
-
-/* ── 헤더 ────────────────────────────────────────────── */
-header {
-  padding: 40px 0 32px;
-  display: flex; align-items: flex-start; justify-content: space-between;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 36px;
-}
-.header-left h1 {
-  font-size: 26px; font-weight: 700; letter-spacing: -0.5px;
-  background: linear-gradient(135deg, #a0a8ff, #d0a0ff);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 4px;
-}
-.header-left p { color: var(--text2); font-size: 14px; }
-
-.header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-
-/* ── 상태 카드 ───────────────────────────────────────── */
-.stats-row {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px; margin-bottom: 36px;
-}
-.stat-card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 12px; padding: 18px 20px;
-  position: relative; overflow: hidden;
-}
-.stat-card::after {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.stat-card:hover::after { opacity: 1; }
-.stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-.stat-value { font-size: 28px; font-weight: 700; color: #c0c8ff; font-family: var(--mono); }
-.stat-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
-
-/* ── 섹션 ────────────────────────────────────────────── */
-.section { margin-bottom: 36px; }
-.section-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 16px;
-}
-.section-title {
-  font-size: 13px; font-weight: 600; color: var(--text2);
-  text-transform: uppercase; letter-spacing: 1.5px;
-  display: flex; align-items: center; gap: 8px;
-}
-.section-title::before {
-  content: ''; display: block; width: 3px; height: 14px;
-  background: linear-gradient(180deg, var(--accent), var(--accent2));
-  border-radius: 2px;
-}
-
-/* ── 버튼 ────────────────────────────────────────────── */
-.btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border-radius: 8px; border: none;
-  font-size: 13px; font-weight: 600; cursor: pointer;
-  font-family: var(--sans);
-  transition: all 0.2s; white-space: nowrap;
-}
-.btn-primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: white;
-  box-shadow: 0 4px 16px rgba(90,111,255,0.3);
-}
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(90,111,255,0.4); }
-.btn-ghost {
-  background: transparent; color: var(--text2);
-  border: 1px solid var(--border2);
-}
-.btn-ghost:hover { background: var(--panel); color: var(--text); border-color: var(--accent); }
-.btn-danger { background: rgba(255,80,96,0.12); color: #ff8090; border: 1px solid rgba(255,80,96,0.2); }
-.btn-danger:hover { background: rgba(255,80,96,0.2); }
-.btn-sm { padding: 5px 10px; font-size: 12px; }
-.btn-icon { width: 32px; height: 32px; padding: 0; justify-content: center; border-radius: 6px; }
-
-/* ── 스케줄 카드 ─────────────────────────────────────── */
-.schedule-list { display: flex; flex-direction: column; gap: 12px; }
-.schedule-card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 14px; overflow: hidden;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.schedule-card:hover { border-color: var(--border2); box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
-.schedule-card.disabled { opacity: 0.5; }
-
-.card-header {
-  padding: 16px 20px;
-  display: flex; align-items: center; gap: 12px;
-  background: var(--panel2);
-  cursor: pointer; user-select: none;
-}
-.card-toggle {
-  position: relative; width: 36px; height: 20px; flex-shrink: 0;
-}
-.card-toggle input { opacity: 0; width: 0; height: 0; }
-.toggle-slider {
-  position: absolute; inset: 0; border-radius: 20px;
-  background: rgba(255,255,255,0.1); cursor: pointer;
-  transition: background 0.2s;
-}
-.toggle-slider::after {
-  content: ''; position: absolute;
-  width: 14px; height: 14px; border-radius: 50%;
-  background: white; top: 3px; left: 3px;
-  transition: transform 0.2s;
-}
-input:checked + .toggle-slider { background: var(--accent); }
-input:checked + .toggle-slider::after { transform: translateX(16px); }
-
-.card-info { flex: 1; }
-.card-name { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
-.card-meta { font-size: 12px; color: var(--text2); display: flex; gap: 12px; flex-wrap: wrap; }
-.card-meta span { display: flex; align-items: center; gap: 4px; }
-
-.card-actions { display: flex; gap: 6px; }
-.card-expand-btn {
-  background: none; border: none; color: var(--text2);
-  cursor: pointer; padding: 4px; font-size: 16px;
-  transition: color 0.2s, transform 0.2s;
-}
-.card-expand-btn:hover { color: var(--text); }
-.schedule-card.expanded .card-expand-btn { transform: rotate(180deg); }
-
-.card-body { padding: 0 20px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s; }
-.schedule-card.expanded .card-body { max-height: 2000px; padding: 16px 20px 20px; }
-
-/* ── 시간 태그 ───────────────────────────────────────── */
-.time-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-.time-tag {
-  display: flex; align-items: center; gap: 6px;
-  background: var(--bg3); border: 1px solid var(--border);
-  padding: 4px 10px; border-radius: 20px;
-  font-size: 13px; font-family: var(--mono); color: #a0b0ff;
-}
-.time-tag .remove-time {
-  background: none; border: none; color: var(--text2);
-  cursor: pointer; padding: 0; line-height: 1; font-size: 14px;
-  transition: color 0.2s;
-}
-.time-tag .remove-time:hover { color: var(--error); }
-.add-time-row { display: flex; gap: 8px; align-items: center; }
-
-/* ── URL 테이블 ──────────────────────────────────────── */
-.url-table { width: 100%; border-collapse: collapse; }
-.url-table th {
-  text-align: left; font-size: 11px; font-weight: 600;
-  color: var(--text2); text-transform: uppercase; letter-spacing: 1px;
-  padding: 8px 12px; border-bottom: 1px solid var(--border);
-}
-.url-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-.url-table tr:last-child td { border-bottom: none; }
-.url-table tr:hover td { background: rgba(255,255,255,0.02); }
-
-.url-cell { font-size: 12px; color: var(--text2); font-family: var(--mono); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.label-cell { font-size: 13px; color: var(--text); font-weight: 500; }
-.platform-badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600;
-}
-.platform-badge.naver { background: rgba(0,200,80,0.1); color: #40c060; border: 1px solid rgba(0,200,80,0.2); }
-.platform-badge.instagram { background: rgba(225,100,150,0.1); color: #e070a0; border: 1px solid rgba(225,100,150,0.2); }
-.platform-badge.youtube { background: rgba(255,60,60,0.1); color: #ff7060; border: 1px solid rgba(255,60,60,0.2); }
-
-.crop-status {
-  font-size: 11px;
-  display: inline-flex; align-items: center; gap: 4px;
-}
-.crop-status.set { color: var(--success); }
-.crop-status.unset { color: var(--text2); }
-
-/* ── URL 추가 폼 ─────────────────────────────────────── */
-.add-url-form {
-  background: var(--bg3); border: 1px solid var(--border);
-  border-radius: 10px; padding: 16px; margin-top: 12px;
-}
-.form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
-.form-row:last-child { margin-bottom: 0; }
-.input-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 180px; }
-.input-label { font-size: 11px; color: var(--text2); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
-input[type="text"], input[type="time"], input[type="url"], select, input[type="number"] {
-  background: var(--bg2); border: 1px solid var(--border);
-  color: var(--text); padding: 8px 12px; border-radius: 8px;
-  font-size: 13px; font-family: var(--sans);
-  outline: none; transition: border-color 0.2s;
-  width: 100%;
-}
-input:focus, select:focus { border-color: var(--accent); }
-input::placeholder { color: var(--text3, #404060); }
-
-/* ── Drive 설정 패널 ─────────────────────────────────── */
-.drive-panel {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 14px; padding: 24px;
-}
-.drive-connected {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 16px; background: rgba(60,200,100,0.08);
-  border: 1px solid rgba(60,200,100,0.2); border-radius: 10px;
-  margin-bottom: 16px;
-}
-.drive-connected .icon { font-size: 20px; }
-.drive-connected .info { flex: 1; }
-.drive-connected .info strong { display: block; font-size: 13px; color: var(--success); }
-.drive-connected .info small { color: var(--text2); font-size: 12px; }
-.step-list { counter-reset: steps; display: flex; flex-direction: column; gap: 16px; }
-.step {
-  display: flex; gap: 14px; align-items: flex-start;
-  counter-increment: steps;
-}
-.step::before {
-  content: counter(steps);
-  min-width: 24px; height: 24px;
-  background: var(--accent); color: white;
-  border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 2px;
-}
-.step-content { flex: 1; }
-.step-content p { font-size: 13px; color: var(--text); margin-bottom: 6px; }
-.step-content small { color: var(--text2); font-size: 12px; }
-.code-block {
-  background: var(--bg); border: 1px solid var(--border);
-  border-radius: 6px; padding: 8px 12px;
-  font-family: var(--mono); font-size: 12px; color: #80a0ff;
-  margin-top: 6px; word-break: break-all;
-}
-
-/* ── 로그 테이블 ─────────────────────────────────────── */
-.log-table { width: 100%; border-collapse: collapse; }
-.log-table th {
-  text-align: left; font-size: 11px; color: var(--text2);
-  text-transform: uppercase; letter-spacing: 1px;
-  padding: 8px 12px; border-bottom: 1px solid var(--border);
-}
-.log-table td { padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 12px; }
-.log-table tbody tr:hover td { background: rgba(255,255,255,0.02); }
-.log-success { color: var(--success); }
-.log-failed { color: var(--error); }
-.log-url-cell { color: var(--text2); font-family: var(--mono); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.log-time-cell { color: var(--text2); white-space: nowrap; }
-.log-empty { text-align: center; color: var(--text2); padding: 32px; font-size: 13px; }
-
-/* ── 탭 ─────────────────────────────────────────────── */
-.tabs { display: flex; gap: 4px; background: var(--bg2); border-radius: 10px; padding: 4px; margin-bottom: 28px; }
-.tab-btn {
-  flex: 1; padding: 9px; background: none; border: none;
-  color: var(--text2); font-size: 13px; font-weight: 600;
-  cursor: pointer; border-radius: 7px; transition: all 0.2s;
-  font-family: var(--sans);
-}
-.tab-btn.active { background: var(--panel); color: var(--text); }
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
-
-/* ── 모달 ────────────────────────────────────────────── */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(4px);
-  z-index: 1000; display: none; align-items: center; justify-content: center;
-}
-.modal-overlay.open { display: flex; }
-.modal {
-  background: var(--panel); border: 1px solid var(--border2);
-  border-radius: 16px; padding: 28px; width: 90%; max-width: 500px;
-  max-height: 85vh; overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-  animation: modalIn 0.2s ease;
-}
-@keyframes modalIn {
-  from { opacity: 0; transform: scale(0.95) translateY(10px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
-}
-.modal h2 { font-size: 18px; margin-bottom: 20px; color: var(--text); }
-.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-
-/* ── 토스트 ─────────────────────────────────────────── */
-#toast {
-  position: fixed; bottom: 28px; right: 28px;
-  background: var(--panel); border: 1px solid var(--border2);
-  color: var(--text); padding: 12px 20px; border-radius: 10px;
-  font-size: 13px; z-index: 9999;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-  transform: translateY(20px); opacity: 0;
-  transition: all 0.3s;
-  display: flex; align-items: center; gap: 8px;
-}
-#toast.show { transform: translateY(0); opacity: 1; }
-
-/* ── 반응형 ─────────────────────────────────────────── */
-@media (max-width: 680px) {
-  .form-row { flex-direction: column; }
-  .header { flex-direction: column; gap: 16px; }
-  .header-right { width: 100%; justify-content: flex-start; }
-}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#080812;--bg2:#0d0d20;--bg3:#131328;--panel:#161630;--panel2:#1c1c3a;--border:rgba(120,120,220,0.15);--border2:rgba(120,120,220,0.25);--accent:#5a6fff;--accent2:#7c55e0;--text:#d0d0f0;--text2:#8080b0;--success:#40e080;--error:#ff5060;--warn:#ffb040;--mono:'DM Mono',monospace;--sans:'Noto Sans KR',sans-serif}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.5}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 10%,rgba(90,111,255,0.08) 0%,transparent 60%),radial-gradient(ellipse 50% 60% at 80% 80%,rgba(124,85,224,0.06) 0%,transparent 60%);pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 24px 60px}
+header{padding:40px 0 32px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid var(--border);margin-bottom:36px}
+header h1{font-size:26px;font-weight:700;background:linear-gradient(135deg,#a0a8ff,#d0a0ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+header p{color:var(--text2);font-size:14px}
+.header-right{display:flex;gap:10px;align-items:center}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:36px}
+.stat-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.stat-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.stat-value{font-size:28px;font-weight:700;color:#c0c8ff;font-family:var(--mono)}
+.stat-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.tabs{display:flex;gap:4px;background:var(--bg2);border-radius:10px;padding:4px;margin-bottom:28px}
+.tab-btn{flex:1;padding:9px;background:none;border:none;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;border-radius:7px;transition:all 0.2s;font-family:var(--sans)}
+.tab-btn.active{background:var(--panel);color:var(--text)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.section{margin-bottom:36px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-title{font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px;display:flex;align-items:center;gap:8px}
+.section-title::before{content:'';display:block;width:3px;height:14px;background:linear-gradient(180deg,var(--accent),var(--accent2));border-radius:2px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all 0.2s;white-space:nowrap}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;box-shadow:0 4px 16px rgba(90,111,255,0.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(90,111,255,0.4)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.btn-ghost:hover{background:var(--panel);color:var(--text);border-color:var(--accent)}
+.btn-danger{background:rgba(255,80,96,0.12);color:#ff8090;border:1px solid rgba(255,80,96,0.2)}
+.btn-danger:hover{background:rgba(255,80,96,0.2)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-icon{width:32px;height:32px;padding:0;justify-content:center;border-radius:6px}
+.schedule-list{display:flex;flex-direction:column;gap:12px}
+.schedule-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:border-color 0.2s}
+.schedule-card:hover{border-color:var(--border2)}
+.card-header{padding:16px 20px;display:flex;align-items:center;gap:12px;background:var(--panel2);cursor:pointer;user-select:none}
+.card-toggle{position:relative;width:36px;height:20px;flex-shrink:0}
+.card-toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;border-radius:20px;background:rgba(255,255,255,0.1);cursor:pointer;transition:background 0.2s}
+.toggle-slider::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:white;top:3px;left:3px;transition:transform 0.2s}
+input:checked+.toggle-slider{background:var(--accent)}
+input:checked+.toggle-slider::after{transform:translateX(16px)}
+.card-info{flex:1}
+.card-name{font-size:15px;font-weight:600;color:var(--text);margin-bottom:2px}
+.card-meta{font-size:12px;color:var(--text2);display:flex;gap:12px;flex-wrap:wrap}
+.card-actions{display:flex;gap:6px}
+.card-expand-btn{background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;font-size:16px;transition:transform 0.2s}
+.schedule-card.expanded .card-expand-btn{transform:rotate(180deg)}
+.card-body{padding:0 20px;max-height:0;overflow:hidden;transition:max-height 0.3s ease,padding 0.3s}
+.schedule-card.expanded .card-body{max-height:2000px;padding:16px 20px 20px}
+.url-table{width:100%;border-collapse:collapse}
+.url-table th{text-align:left;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1px;padding:8px 12px;border-bottom:1px solid var(--border)}
+.url-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.url-table tr:last-child td{border-bottom:none}
+.url-cell{font-size:12px;color:var(--text2);font-family:var(--mono);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.label-cell{font-size:13px;color:var(--text);font-weight:500}
+.platform-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.platform-badge.naver{background:rgba(0,200,80,0.1);color:#40c060;border:1px solid rgba(0,200,80,0.2)}
+.platform-badge.instagram{background:rgba(225,100,150,0.1);color:#e070a0;border:1px solid rgba(225,100,150,0.2)}
+.platform-badge.youtube{background:rgba(255,60,60,0.1);color:#ff7060;border:1px solid rgba(255,60,60,0.2)}
+.crop-status{font-size:11px;display:inline-flex;align-items:center;gap:4px}
+.crop-status.set{color:var(--success)}
+.crop-status.unset{color:var(--text2)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--panel);border:1px solid var(--border2);border-radius:16px;padding:28px;width:90%;max-width:500px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.6);animation:modalIn 0.2s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(0.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal h2{font-size:18px;margin-bottom:20px;color:var(--text)}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.form-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.input-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:180px}
+.input-label{font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px}
+input[type=text],input[type=time],input[type=url],select,input[type=number]{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;font-family:var(--sans);outline:none;transition:border-color 0.2s;width:100%}
+input:focus,select:focus{border-color:var(--accent)}
+input::placeholder{color:#404060}
+.time-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.time-tag{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);padding:4px 10px;border-radius:20px;font-size:13px;font-family:var(--mono);color:#a0b0ff}
+.time-tag button{background:none;border:none;color:var(--text2);cursor:pointer;padding:0;line-height:1;font-size:14px}
+.time-tag button:hover{color:var(--error)}
+.add-time-row{display:flex;gap:8px;align-items:center}
+.add-url-form{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:8px}
+.drive-panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:24px}
+.drive-connected{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(60,200,100,0.08);border:1px solid rgba(60,200,100,0.2);border-radius:10px;margin-bottom:16px}
+.log-table{width:100%;border-collapse:collapse}
+.log-table th{text-align:left;font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;padding:8px 12px;border-bottom:1px solid var(--border)}
+.log-table td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px}
+.log-success{color:var(--success)}
+.log-failed{color:var(--error)}
+.log-url-cell{color:var(--text2);font-family:var(--mono);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log-time-cell{color:var(--text2);white-space:nowrap}
+.log-empty{text-align:center;color:var(--text2);padding:32px;font-size:13px}
+#toast{position:fixed;bottom:28px;right:28px;background:var(--panel);border:1px solid var(--border2);color:var(--text);padding:12px 20px;border-radius:10px;font-size:13px;z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,0.5);transform:translateY(20px);opacity:0;transition:all 0.3s;display:flex;align-items:center;gap:8px}
+#toast.show{transform:translateY(0);opacity:1}
 </style>
 </head>
 <body>
 <div class="app">
-
-  <!-- 헤더 -->
   <header>
-    <div class="header-left">
+    <div>
       <h1>📸 SNS Monitor</h1>
       <p>자동 캡처 & Google Drive 저장 관리</p>
     </div>
@@ -372,38 +114,19 @@ input::placeholder { color: var(--text3, #404060); }
     </div>
   </header>
 
-  <!-- 통계 -->
   <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-label">활성 스케줄</div>
-      <div class="stat-value" id="statSchedules">0</div>
-      <div class="stat-sub">개 스케줄 실행 중</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">등록 URL</div>
-      <div class="stat-value" id="statUrls">0</div>
-      <div class="stat-sub">개 링크 모니터링</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">오늘 캡처</div>
-      <div class="stat-value" id="statToday">0</div>
-      <div class="stat-sub">건 완료</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">성공률</div>
-      <div class="stat-value" id="statRate">—</div>
-      <div class="stat-sub">최근 30일</div>
-    </div>
+    <div class="stat-card"><div class="stat-label">활성 스케줄</div><div class="stat-value" id="statSchedules">0</div><div class="stat-sub">개 스케줄 실행 중</div></div>
+    <div class="stat-card"><div class="stat-label">등록 URL</div><div class="stat-value" id="statUrls">0</div><div class="stat-sub">개 링크 모니터링</div></div>
+    <div class="stat-card"><div class="stat-label">오늘 캡처</div><div class="stat-value" id="statToday">0</div><div class="stat-sub">건 완료</div></div>
+    <div class="stat-card"><div class="stat-label">성공률</div><div class="stat-value" id="statRate">—</div><div class="stat-sub">최근 30일</div></div>
   </div>
 
-  <!-- 탭 -->
   <div class="tabs">
     <button class="tab-btn active" data-tab="schedules">스케줄 관리</button>
     <button class="tab-btn" data-tab="drive">Drive 설정</button>
     <button class="tab-btn" data-tab="logs">캡처 로그</button>
   </div>
 
-  <!-- 스케줄 탭 -->
   <div class="tab-panel active" id="tab-schedules">
     <div class="section">
       <div class="section-header">
@@ -411,118 +134,69 @@ input::placeholder { color: var(--text3, #404060); }
         <button class="btn btn-primary btn-sm" id="addScheduleBtn">+ 스케줄 추가</button>
       </div>
       <div class="schedule-list" id="scheduleList">
-        <div style="text-align:center; color:var(--text2); padding:40px; font-size:14px;">
-          스케줄이 없습니다. 위의 버튼으로 추가해주세요.
-        </div>
+        <div style="text-align:center;color:var(--text2);padding:40px;font-size:14px;">스케줄이 없습니다. 위의 버튼으로 추가해주세요.</div>
       </div>
     </div>
   </div>
 
-  <!-- Drive 탭 -->
   <div class="tab-panel" id="tab-drive">
     <div class="section">
       <div class="section-title" style="margin-bottom:20px">Google Drive 연결</div>
       <div class="drive-panel">
         <div id="driveConnected" class="drive-connected" style="display:none">
-          <span class="icon">✅</span>
-          <div class="info">
-            <strong>드라이브 연결됨</strong>
-            <small id="driveFolderName">폴더 정보 로딩 중...</small>
-          </div>
+          <span style="font-size:20px">✅</span>
+          <div style="flex:1"><strong style="display:block;font-size:13px;color:var(--success)">드라이브 연결됨</strong><small id="driveFolderName" style="color:var(--text2);font-size:12px">Apps Script 연결됨 ✓</small></div>
           <button class="btn btn-ghost btn-sm" id="disconnectDriveBtn">연결 해제</button>
         </div>
-
         <div id="driveSetupGuide">
-          <div class="step-list">
-            <div class="step">
-              <div class="step-content">
-                <p><strong>Google Cloud Console에서 OAuth Client ID 발급</strong></p>
-                <small>APIs & Services → Credentials → Create Credentials → OAuth Client ID → Chrome Extension 선택</small>
-                <div class="code-block">Extension ID: <span id="extId">확장 프로그램 설치 후 확인</span></div>
-              </div>
-            </div>
-            <div class="step">
-              <div class="step-content">
-                <p><strong>manifest.json에 Client ID 입력</strong></p>
-                <small>oauth2.client_id 필드에 발급받은 Client ID를 입력하세요</small>
-              </div>
-            </div>
-            <div class="step">
-              <div class="step-content">
-                <p><strong>공유 드라이브 폴더 ID 입력</strong></p>
-                <small>팀과 공유할 Google Drive 폴더 URL에서 폴더 ID를 복사해주세요</small>
-                <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
-                  <div class="input-group" style="flex:2">
-                    <input type="text" id="folderIdInput" placeholder="예: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms">
-                  </div>
-                  <button class="btn btn-primary" id="connectDriveBtn">Drive 연결하기</button>
-                </div>
-                <small style="margin-top:6px; display:block;">📌 폴더 URL: drive.google.com/drive/folders/<strong style="color:#a0b0ff">폴더ID</strong></small>
-              </div>
-            </div>
-          </div>
+          <p style="color:var(--text2);font-size:13px;margin-bottom:16px">Google Drive 공유 폴더에 자동으로 캡처 이미지를 저장합니다.</p>
+          <button class="btn btn-primary" id="connectDriveBtn">Drive 연결하기</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 로그 탭 -->
   <div class="tab-panel" id="tab-logs">
     <div class="section">
       <div class="section-header">
         <div class="section-title">캡처 기록</div>
         <button class="btn btn-ghost btn-sm" id="refreshLogsBtn">↻ 새로고침</button>
       </div>
-      <div style="background:var(--panel); border:1px solid var(--border); border-radius:14px; overflow:hidden;">
+      <div style="background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden">
         <table class="log-table">
-          <thead>
-            <tr>
-              <th>상태</th>
-              <th>스케줄</th>
-              <th>URL</th>
-              <th>결과</th>
-              <th>시각</th>
-            </tr>
-          </thead>
-          <tbody id="logTableBody">
-            <tr><td colspan="5" class="log-empty">로그 없음</td></tr>
-          </tbody>
+          <thead><tr><th>상태</th><th>스케줄</th><th>URL</th><th>결과</th><th>시각</th></tr></thead>
+          <tbody id="logTableBody"><tr><td colspan="5" class="log-empty">로그 없음</td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
+</div>
 
-</div><!-- /.app -->
-
-<!-- 스케줄 추가/편집 모달 -->
+<!-- 모달 -->
 <div class="modal-overlay" id="scheduleModal">
   <div class="modal">
     <h2 id="modalTitle">스케줄 추가</h2>
-
     <div class="form-row">
       <div class="input-group">
         <label class="input-label">스케줄 이름</label>
-        <input type="text" id="mName" placeholder="예: 네이버 블로그 오전 모니터링">
+        <input type="text" id="mName" placeholder="예: 네이버 블로그 모니터링">
       </div>
     </div>
-
     <div style="margin-bottom:14px">
-      <label class="input-label" style="display:block; margin-bottom:8px;">실행 시간 (여러 개 추가 가능)</label>
+      <label class="input-label" style="display:block;margin-bottom:8px">실행 시간 (여러 개 추가 가능)</label>
       <div class="time-tags" id="timeTags"></div>
       <div class="add-time-row">
         <input type="time" id="mTimeInput" style="width:140px">
         <button class="btn btn-ghost btn-sm" id="addTimeBtn">+ 시간 추가</button>
       </div>
     </div>
-
     <div style="margin-bottom:14px">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <label class="input-label">URL 목록</label>
         <button class="btn btn-ghost btn-sm" id="addUrlRowBtn">+ URL 추가</button>
       </div>
-      <div id="mUrlList" style="display:flex; flex-direction:column; gap:8px;"></div>
+      <div id="mUrlList"></div>
     </div>
-
     <div class="form-row">
       <div class="input-group">
         <label class="input-label">페이지 로딩 대기 (초)</label>
@@ -536,7 +210,6 @@ input::placeholder { color: var(--text3, #404060); }
         </select>
       </div>
     </div>
-
     <div class="modal-footer">
       <button class="btn btn-ghost" id="modalCancelBtn">취소</button>
       <button class="btn btn-primary" id="modalSaveBtn">저장</button>
@@ -544,16 +217,8 @@ input::placeholder { color: var(--text3, #404060); }
   </div>
 </div>
 
-<!-- 토스트 -->
 <div id="toast"></div>
 
-<script>
-// 캐시 무력화
-document.addEventListener('DOMContentLoaded', () => {
-  const s = document.createElement('script');
-  s.src = 'app.js?v=' + Date.now();
-  document.body.appendChild(s);
-});
-</script>
+<script src="app.js"></script>
 </body>
 </html>
