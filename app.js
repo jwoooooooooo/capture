@@ -180,8 +180,8 @@ async function runScheduleNow(id) {
     await sendToExt({ type: 'RUN_NOW', scheduleId: id });
     showToast('✅ 캡처가 시작되었습니다');
     setTimeout(loadData, 5000);
-  } catch {
-    showToast('⚠ 확장 프로그램 연결이 필요합니다', 'error');
+} catch(err) {
+    showToast('⚠ ' + err.message, 'error');
   }
   if (btn) { btn.textContent = '▶ 지금 실행'; btn.disabled = false; }
 }
@@ -333,8 +333,12 @@ function renderLogs() {
 }
 
 async function saveSchedules() {
-  try { await sendToExt({ type: 'SAVE_SCHEDULES', schedules }); }
-  catch { localStorage.setItem('sns_schedules', JSON.stringify(schedules)); }
+  try {
+    await sendToExt({ type: 'SAVE_SCHEDULES', schedules });
+    localStorage.setItem('sns_schedules', JSON.stringify(schedules));
+  } catch {
+    localStorage.setItem('sns_schedules', JSON.stringify(schedules));
+  }
 }
 
 function setupTabs() {
