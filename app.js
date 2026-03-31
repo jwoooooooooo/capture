@@ -486,7 +486,8 @@ function setupEventListeners() {
     if (e.target === e.currentTarget) closeModal();
   });
 
-  document.getElementById('connectDriveBtn').addEventListener('click', connectDrive);
+  const connectBtn = document.getElementById('connectDriveBtn');
+if (connectBtn) connectBtn.addEventListener('click', connectDrive);
   document.getElementById('disconnectDriveBtn').addEventListener('click', disconnectDrive);
   document.getElementById('refreshLogsBtn').addEventListener('click', loadData);
 }
@@ -531,3 +532,8 @@ init();
 // 전역 노출
 window.connectDrive = connectDrive;
 window.disconnectDrive = disconnectDrive;
+// 버튼 직접 연결 (백업)
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('connectDriveBtn');
+  if (btn) btn.onclick = connectDrive;
+});
