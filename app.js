@@ -1,17 +1,20 @@
 // ============================================================
 // SNS Monitor WebApp - app.js
-// Chrome 확장 프로그램과 통신하여 스케줄/드라이브 관리
 // ============================================================
 
-// ── 확장 프로그램과 통신 ─────────────────────────────────
-const EXT_ID = 'dokamfkjdpdpkiaibdaohhmalklkhfdd'; // 확장 설치 후 교체
+const EXT_ID = 'dokamfkjdpdpkiaibdaohhmalklkhfdd';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzb2CDFE3zQqBvvsOttfsQKhpyNbjlcIVhs9EUxNaPap0Qxe91HmRsIySaAJZQFZkk/exec';
+
+let schedules = [];
+let driveConfig = null;
+let logs = [];
+let editingScheduleId = null;
+let modalTimes = [];
+let modalUrls = [];
 
 function sendToExt(msg) {
   return new Promise((resolve, reject) => {
-    if (!chrome?.runtime?.sendMessage) {
-      reject(new Error('NO_EXT'));
-      return;
-    }
+    if (!window.chrome?.runtime?.sendMessage) { reject(new Error('NO_EXT')); return; }
     chrome.runtime.sendMessage(EXT_ID, msg, (resp) => {
       if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
       else if (resp?.error) reject(new Error(resp.error));
@@ -20,20 +23,9 @@ function sendToExt(msg) {
   });
 }
 
-// ── 상태 ─────────────────────────────────────────────────
-let schedules = [];
-let driveConfig = null;
-let logs = [];
-let editingScheduleId = null;
-let modalTimes = [];
-let modalUrls = [];
-
-// ── 초기화 ───────────────────────────────────────────────
 async function init() {
-  setupTabs();
   await checkExtension();
   await loadData();
-  setupEventListeners();
 }
 
 async function checkExtension() {
@@ -57,182 +49,115 @@ async function loadData() {
   } catch {
     schedules = JSON.parse(localStorage.getItem('sns_schedules') || '[]');
   }
-
   try {
     const res = await sendToExt({ type: 'GET_LOGS' });
     logs = res.logs || [];
-  } catch {
-    logs = [];
-  }
-
-  // Drive config from localStorage fallback
+  } catch { logs = []; }
   driveConfig = JSON.parse(localStorage.getItem('sns_drive_config') || 'null');
-
   renderStats();
   renderSchedules();
   renderDrive();
   renderLogs();
 }
 
-// ── 통계 렌더링 ──────────────────────────────────────────
 function renderStats() {
   const active = schedules.filter(s => s.enabled);
-  const urlCount = active.reduce((sum, s) => sum + s.urls.length, 0);
-
   document.getElementById('statSchedules').textContent = active.length;
-  document.getElementById('statUrls').textContent = urlCount;
-
+  document.getElementById('statUrls').textContent = active.reduce((sum, s) => sum + (s.urls?.length || 0), 0);
   const today = new Date().toLocaleDateString('ko-KR');
-  const todayLogs = logs.filter(l => new Date(l.timestamp).toLocaleDateString('ko-KR') === today);
-  document.getElementById('statToday').textContent = todayLogs.filter(l => l.status === 'success').length;
-
+  document.getElementById('statToday').textContent = logs.filter(l => l.status === 'success' && new Date(l.timestamp).toLocaleDateString('ko-KR') === today).length;
   if (logs.length > 0) {
-    const rate = Math.round(logs.filter(l => l.status === 'success').length / logs.length * 100);
-    document.getElementById('statRate').textContent = rate + '%';
+    document.getElementById('statRate').textContent = Math.round(logs.filter(l => l.status === 'success').length / logs.length * 100) + '%';
   }
 }
 
-// ── 스케줄 렌더링 ────────────────────────────────────────
 function renderSchedules() {
   const list = document.getElementById('scheduleList');
   if (schedules.length === 0) {
-    list.innerHTML = `<div style="text-align:center; color:var(--text2); padding:40px; font-size:14px;">
-      스케줄이 없습니다. 위의 버튼으로 추가해주세요.
-    </div>`;
+    list.innerHTML = `<div style="text-align:center;color:var(--text2);padding:40px;font-size:14px;">스케줄이 없습니다. 위의 버튼으로 추가해주세요.</div>`;
     return;
   }
-
-  list.innerHTML = schedules.map(s => renderScheduleCard(s)).join('');
-  
-  // 이벤트 연결
-  list.querySelectorAll('[data-action]').forEach(el => {
-    el.addEventListener('click', handleCardAction);
-  });
-  list.querySelectorAll('.card-header').forEach(el => {
-    el.addEventListener('click', (e) => {
-      if (e.target.closest('[data-action]') || e.target.closest('.card-toggle')) return;
-      const card = el.closest('.schedule-card');
-      card.classList.toggle('expanded');
-      const btn = card.querySelector('.card-expand-btn');
-      btn.textContent = card.classList.contains('expanded') ? '▲' : '▼';
-    });
-  });
-  list.querySelectorAll('.card-toggle input').forEach(el => {
-    el.addEventListener('change', (e) => {
-      const id = e.target.dataset.id;
-      toggleSchedule(id, e.target.checked);
-    });
-  });
-}
-
-function renderScheduleCard(s) {
-  const times = (s.times || [s.time]).filter(Boolean);
-  const urlCount = s.urls?.length || 0;
-  const platforms = [...new Set((s.urls || []).map(u => getPlatform(u.url)))];
-  
-  return `
+  list.innerHTML = schedules.map(s => {
+    const times = (s.times || [s.time]).filter(Boolean);
+    return `
     <div class="schedule-card ${s.enabled ? '' : 'disabled'}" data-id="${s.id}">
       <div class="card-header">
-        <label class="card-toggle" onclick="event.stopPropagation()">
-          <input type="checkbox" ${s.enabled ? 'checked' : ''} data-id="${s.id}">
+        <label class="card-toggle">
+          <input type="checkbox" class="toggle-input" ${s.enabled ? 'checked' : ''} data-id="${s.id}">
           <span class="toggle-slider"></span>
         </label>
         <div class="card-info">
           <div class="card-name">${escHtml(s.name)}</div>
           <div class="card-meta">
-            <span>🕐 ${times.map(t => `<strong>${t}</strong>`).join(', ')}</span>
-            <span>🔗 ${urlCount}개 URL</span>
-            <span>${platforms.map(p => `<span class="platform-badge ${p}">${p}</span>`).join(' ')}</span>
+            <span>🕐 ${times.join(', ')}</span>
+            <span>🔗 ${s.urls?.length || 0}개 URL</span>
           </div>
         </div>
         <div class="card-actions">
-          <button class="btn btn-ghost btn-sm" data-action="run" data-id="${s.id}" onclick="event.stopPropagation()">▶ 지금 실행</button>
-          <button class="btn btn-ghost btn-icon" data-action="edit" data-id="${s.id}" onclick="event.stopPropagation()">✏</button>
-          <button class="btn btn-danger btn-icon" data-action="delete" data-id="${s.id}" onclick="event.stopPropagation()">🗑</button>
-          <button class="card-expand-btn" onclick="event.stopPropagation()">▼</button>
+          <button class="btn btn-ghost btn-sm btn-run" data-id="${s.id}">▶ 지금 실행</button>
+          <button class="btn btn-ghost btn-icon btn-edit" data-id="${s.id}">✏</button>
+          <button class="btn btn-danger btn-icon btn-delete" data-id="${s.id}">🗑</button>
+          <button class="btn-expand card-expand-btn">▼</button>
         </div>
       </div>
       <div class="card-body">
         <table class="url-table">
-          <thead>
-            <tr>
-              <th>레이블</th>
-              <th>플랫폼</th>
-              <th>URL</th>
-              <th>크롭 설정</th>
-              <th>액션</th>
-            </tr>
-          </thead>
+          <thead><tr><th>레이블</th><th>플랫폼</th><th>URL</th><th>크롭</th><th></th></tr></thead>
           <tbody>
             ${(s.urls || []).map(u => `
               <tr>
                 <td class="label-cell">${escHtml(u.label || '—')}</td>
                 <td><span class="platform-badge ${getPlatform(u.url)}">${getPlatformName(u.url)}</span></td>
                 <td class="url-cell" title="${escHtml(u.url)}">${escHtml(u.url)}</td>
-                <td>
-                  ${u.cropRegion
-                    ? `<span class="crop-status set">✓ 설정됨 (${u.cropRegion.width}×${u.cropRegion.height})</span>`
-                    : `<span class="crop-status unset">미설정</span>`
-                  }
-                </td>
-                <td>
-                  <button class="btn btn-ghost btn-sm" data-action="crop" data-sched-id="${s.id}" data-url-id="${u.id}">크롭 설정</button>
-                </td>
-              </tr>
-            `).join('')}
+                <td>${u.cropRegion ? `<span class="crop-status set">✓ ${u.cropRegion.width}×${u.cropRegion.height}</span>` : `<span class="crop-status unset">미설정</span>`}</td>
+                <td><button class="btn btn-ghost btn-sm btn-crop" data-sched-id="${s.id}" data-url-id="${u.id}">크롭 설정</button></td>
+              </tr>`).join('')}
           </tbody>
         </table>
       </div>
-    </div>
-  `;
-}
+    </div>`;
+  }).join('');
 
-async function handleCardAction(e) {
-  const btn = e.currentTarget;
-  const action = btn.dataset.action;
-  const id = btn.dataset.id;
-
-  if (action === 'edit') openModal(id);
-  if (action === 'delete') deleteSchedule(id);
-  if (action === 'run') runScheduleNow(id);
-  if (action === 'crop') {
-    const schedId = btn.dataset.schedId;
-    const urlId = btn.dataset.urlId;
-    startCropMode(schedId, urlId);
-  }
-}
-
-// ── 크롭 모드 ────────────────────────────────────────────
-async function startCropMode(schedId, urlId) {
-  const sched = schedules.find(s => s.id === schedId);
-  const urlItem = sched?.urls.find(u => u.id === urlId);
-  if (!urlItem) return;
-
-  // 해당 URL을 새 탭에서 열고 크롭 오버레이 시작
-  showToast('📸 브라우저에서 캡처할 영역을 드래그해서 선택하세요');
-
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    // content script에 크롭 선택 시작 메시지
-    await sendToExt({
-      type: 'OPEN_CROP_MODE',
-      url: urlItem.url,
-      urlId: urlId,
-      currentRegion: urlItem.cropRegion || null
+  list.querySelectorAll('.toggle-input').forEach(el => {
+    el.addEventListener('change', e => toggleSchedule(e.target.dataset.id, e.target.checked));
+  });
+  list.querySelectorAll('.btn-run').forEach(el => {
+    el.addEventListener('click', e => { e.stopPropagation(); runScheduleNow(el.dataset.id); });
+  });
+  list.querySelectorAll('.btn-edit').forEach(el => {
+    el.addEventListener('click', e => { e.stopPropagation(); openModal(el.dataset.id); });
+  });
+  list.querySelectorAll('.btn-delete').forEach(el => {
+    el.addEventListener('click', e => { e.stopPropagation(); deleteSchedule(el.dataset.id); });
+  });
+  list.querySelectorAll('.btn-expand').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const card = el.closest('.schedule-card');
+      card.classList.toggle('expanded');
+      el.textContent = card.classList.contains('expanded') ? '▲' : '▼';
     });
-  } catch (err) {
-    showToast('⚠ 확장 프로그램을 통해 크롭 모드를 시작해주세요', 'error');
-  }
+  });
+  list.querySelectorAll('.card-header').forEach(el => {
+    el.addEventListener('click', e => {
+      if (e.target.closest('button') || e.target.closest('label')) return;
+      const card = el.closest('.schedule-card');
+      card.classList.toggle('expanded');
+      const btn = card.querySelector('.btn-expand');
+      if (btn) btn.textContent = card.classList.contains('expanded') ? '▲' : '▼';
+    });
+  });
+  list.querySelectorAll('.btn-crop').forEach(el => {
+    el.addEventListener('click', () => startCropMode(el.dataset.schedId, el.dataset.urlId));
+  });
 }
 
-// ── 스케줄 토글 ──────────────────────────────────────────
 async function toggleSchedule(id, enabled) {
   schedules = schedules.map(s => s.id === id ? { ...s, enabled } : s);
   await saveSchedules();
   renderStats();
 }
 
-// ── 스케줄 삭제 ──────────────────────────────────────────
 async function deleteSchedule(id) {
   if (!confirm('이 스케줄을 삭제하시겠습니까?')) return;
   schedules = schedules.filter(s => s.id !== id);
@@ -242,33 +167,34 @@ async function deleteSchedule(id) {
   showToast('✅ 스케줄 삭제 완료');
 }
 
-// ── 즉시 실행 ────────────────────────────────────────────
 async function runScheduleNow(id) {
-  const btn = document.querySelector(`[data-action="run"][data-id="${id}"]`);
+  const btn = document.querySelector(`.btn-run[data-id="${id}"]`);
   if (btn) { btn.textContent = '⏳ 실행 중...'; btn.disabled = true; }
   try {
     await sendToExt({ type: 'RUN_NOW', scheduleId: id });
     showToast('✅ 캡처가 시작되었습니다');
     setTimeout(loadData, 5000);
-  } catch (err) {
+  } catch {
     showToast('⚠ 확장 프로그램 연결이 필요합니다', 'error');
   }
   if (btn) { btn.textContent = '▶ 지금 실행'; btn.disabled = false; }
 }
 
-// ── 모달 ─────────────────────────────────────────────────
+async function startCropMode(schedId, urlId) {
+  showToast('📸 해당 URL 탭에서 캡처 영역을 드래그하세요');
+  try { await sendToExt({ type: 'OPEN_CROP_MODE', schedId, urlId }); }
+  catch { showToast('⚠ 확장 프로그램 연결이 필요합니다', 'error'); }
+}
+
 function openModal(editId = null) {
   editingScheduleId = editId;
   const s = editId ? schedules.find(s => s.id === editId) : null;
-
   document.getElementById('modalTitle').textContent = editId ? '스케줄 편집' : '스케줄 추가';
   document.getElementById('mName').value = s?.name || '';
   document.getElementById('mWait').value = s?.extraWait ? s.extraWait / 1000 : 3;
   document.getElementById('mLocalDownload').value = String(s?.localDownload || false);
-
-  modalTimes = s ? ([...new Set([...(s.times || []), s.time].filter(Boolean))]) : [];
+  modalTimes = s ? [...new Set([...(s.times || []), s.time].filter(Boolean))] : [];
   modalUrls = s ? s.urls.map(u => ({ ...u })) : [];
-
   renderModalTimes();
   renderModalUrls();
   document.getElementById('scheduleModal').classList.add('open');
@@ -280,65 +206,53 @@ function closeModal() {
 }
 
 function renderModalTimes() {
-  document.getElementById('timeTags').innerHTML = modalTimes.map(t => `
-    <div class="time-tag">
-      ${t}
-      <button class="remove-time" data-time="${t}">×</button>
-    </div>
-  `).join('');
-  document.querySelectorAll('.remove-time').forEach(btn => {
-    btn.addEventListener('click', () => {
-      modalTimes = modalTimes.filter(t => t !== btn.dataset.time);
-      renderModalTimes();
-    });
+  const container = document.getElementById('timeTags');
+  container.innerHTML = modalTimes.map(t => `
+    <div class="time-tag">${t}<button class="remove-time" data-time="${t}">×</button></div>`).join('');
+  container.querySelectorAll('.remove-time').forEach(btn => {
+    btn.addEventListener('click', () => { modalTimes = modalTimes.filter(t => t !== btn.dataset.time); renderModalTimes(); });
   });
 }
 
 function renderModalUrls() {
   const container = document.getElementById('mUrlList');
   container.innerHTML = modalUrls.map((u, i) => `
-    <div class="add-url-form" data-idx="${i}">
+    <div class="add-url-form">
       <div class="form-row">
         <div class="input-group" style="flex:2">
           <label class="input-label">URL</label>
           <input type="url" class="url-input" data-idx="${i}" value="${escHtml(u.url || '')}" placeholder="https://...">
         </div>
         <div class="input-group" style="flex:1">
-          <label class="input-label">레이블 (파일명에 사용)</label>
+          <label class="input-label">레이블</label>
           <input type="text" class="label-input" data-idx="${i}" value="${escHtml(u.label || '')}" placeholder="예: 오리온_블로그">
         </div>
-        <button class="btn btn-danger btn-icon" style="align-self:flex-end; flex-shrink:0" onclick="removeUrlRow(${i})">✕</button>
+        <button class="btn btn-danger btn-icon remove-url-btn" data-idx="${i}" style="align-self:flex-end;flex-shrink:0">✕</button>
       </div>
-    </div>
-  `).join('');
-  
+    </div>`).join('');
   container.querySelectorAll('.url-input').forEach(inp => {
     inp.addEventListener('input', e => { modalUrls[+e.target.dataset.idx].url = e.target.value; });
   });
   container.querySelectorAll('.label-input').forEach(inp => {
     inp.addEventListener('input', e => { modalUrls[+e.target.dataset.idx].label = e.target.value; });
   });
+  container.querySelectorAll('.remove-url-btn').forEach(btn => {
+    btn.addEventListener('click', () => { modalUrls.splice(+btn.dataset.idx, 1); renderModalUrls(); });
+  });
 }
-
-window.removeUrlRow = function(i) {
-  modalUrls.splice(i, 1);
-  renderModalUrls();
-};
 
 async function saveModal() {
   const name = document.getElementById('mName').value.trim();
   if (!name) { showToast('스케줄 이름을 입력해주세요', 'error'); return; }
   if (modalTimes.length === 0) { showToast('실행 시간을 하나 이상 추가해주세요', 'error'); return; }
-  
   const validUrls = modalUrls.filter(u => u.url?.trim());
   if (validUrls.length === 0) { showToast('URL을 하나 이상 추가해주세요', 'error'); return; }
 
-  // 다중 시간 → 각각 별도 스케줄로 분리 (또는 times 배열로 저장)
   const scheduleData = {
     id: editingScheduleId || generateId(),
     name,
     times: modalTimes,
-    time: modalTimes[0], // 하위 호환
+    time: modalTimes[0],
     urls: validUrls.map(u => ({ ...u, id: u.id || generateId() })),
     extraWait: parseInt(document.getElementById('mWait').value) * 1000,
     localDownload: document.getElementById('mLocalDownload').value === 'true',
@@ -351,7 +265,6 @@ async function saveModal() {
   } else {
     schedules.push(scheduleData);
   }
-
   await saveSchedules();
   closeModal();
   renderSchedules();
@@ -359,33 +272,13 @@ async function saveModal() {
   showToast('✅ 스케줄이 저장되었습니다');
 }
 
-// ── Drive 렌더링 ─────────────────────────────────────────
-function renderDrive() {
-  const connected = document.getElementById('driveConnected');
-  const guide = document.getElementById('driveSetupGuide');
-
-  if (driveConfig?.connected) {
-    connected.style.display = 'flex';
-    guide.style.display = 'none';
-    document.getElementById('driveFolderName').textContent = `폴더 ID: ${driveConfig.folderId}`;
-  } else {
-    connected.style.display = 'none';
-    guide.style.display = 'block';
-  }
-}
-
 async function connectDrive() {
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzb2CDFE3zQqBvvsOttfsQKhpyNbjlcIVhs9EUxNaPap0Qxe91HmRsIySaAJZQFZkk/exec';
-  
   try {
-    // Apps Script 연결 테스트
     const res = await fetch(APPS_SCRIPT_URL);
     const data = await res.json();
     if (!data.ok) throw new Error('Apps Script 응답 오류');
-
     driveConfig = { appsScriptUrl: APPS_SCRIPT_URL, connected: true };
     localStorage.setItem('sns_drive_config', JSON.stringify(driveConfig));
-
     renderDrive();
     showToast('✅ Google Drive 연결 완료!');
   } catch (err) {
@@ -396,49 +289,48 @@ async function connectDrive() {
 async function disconnectDrive() {
   driveConfig = null;
   localStorage.removeItem('sns_drive_config');
-  await sendToExt({ type: 'SAVE_DRIVE_CONFIG', config: null }).catch(() => {});
   renderDrive();
   showToast('Drive 연결이 해제되었습니다');
 }
 
-// ── 로그 렌더링 ──────────────────────────────────────────
+function renderDrive() {
+  const connected = document.getElementById('driveConnected');
+  const guide = document.getElementById('driveSetupGuide');
+  if (driveConfig?.connected) {
+    connected.style.display = 'flex';
+    guide.style.display = 'none';
+    document.getElementById('driveFolderName').textContent = 'Apps Script 연결됨 ✓';
+  } else {
+    connected.style.display = 'none';
+    guide.style.display = 'block';
+  }
+}
+
 function renderLogs() {
   const tbody = document.getElementById('logTableBody');
   if (logs.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" class="log-empty">캡처 기록이 없습니다</td></tr>';
     return;
   }
-  
-  const recent = [...logs].reverse().slice(0, 100);
-  tbody.innerHTML = recent.map(log => {
+  tbody.innerHTML = [...logs].reverse().slice(0, 100).map(log => {
     const sched = schedules.find(s => s.id === log.scheduleId);
-    const time = new Date(log.timestamp).toLocaleString('ko-KR', {
-      month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit', second: '2-digit'
-    });
-    const domain = (() => { try { return new URL(log.url).hostname.replace('www.',''); } catch { return log.url; } })();
-    return `
-      <tr>
-        <td class="${log.status === 'success' ? 'log-success' : 'log-failed'}">${log.status === 'success' ? '✓ 성공' : '✕ 실패'}</td>
-        <td>${escHtml(sched?.name || log.scheduleId)}</td>
-        <td class="log-url-cell" title="${escHtml(log.url)}">${escHtml(domain)}</td>
-        <td style="font-size:11px; color:var(--text2)">${escHtml(log.detail || '')}</td>
-        <td class="log-time-cell">${time}</td>
-      </tr>
-    `;
+    const time = new Date(log.timestamp).toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const domain = (() => { try { return new URL(log.url).hostname.replace('www.', ''); } catch { return log.url; } })();
+    return `<tr>
+      <td class="${log.status === 'success' ? 'log-success' : 'log-failed'}">${log.status === 'success' ? '✓ 성공' : '✕ 실패'}</td>
+      <td>${escHtml(sched?.name || '')}</td>
+      <td class="log-url-cell">${escHtml(domain)}</td>
+      <td style="font-size:11px;color:var(--text2)">${escHtml(log.detail || '')}</td>
+      <td class="log-time-cell">${time}</td>
+    </tr>`;
   }).join('');
 }
 
-// ── 저장 ─────────────────────────────────────────────────
 async function saveSchedules() {
-  try {
-    await sendToExt({ type: 'SAVE_SCHEDULES', schedules });
-  } catch {
-    localStorage.setItem('sns_schedules', JSON.stringify(schedules));
-  }
+  try { await sendToExt({ type: 'SAVE_SCHEDULES', schedules }); }
+  catch { localStorage.setItem('sns_schedules', JSON.stringify(schedules)); }
 }
 
-// ── 탭 ───────────────────────────────────────────────────
 function setupTabs() {
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -450,53 +342,10 @@ function setupTabs() {
   });
 }
 
-// ── 이벤트 연결 ──────────────────────────────────────────
-function setupEventListeners() {
-  document.getElementById('addScheduleBtn').addEventListener('click', () => openModal());
-  document.getElementById('runAllBtn').addEventListener('click', async () => {
-    const btn = document.getElementById('runAllBtn');
-    btn.textContent = '⏳ 실행 중...';
-    btn.disabled = true;
-    for (const s of schedules.filter(s => s.enabled)) {
-      await runScheduleNow(s.id);
-      await new Promise(r => setTimeout(r, 1000));
-    }
-    btn.textContent = '▶ 지금 전체 캡처';
-    btn.disabled = false;
-  });
-
-  document.getElementById('addTimeBtn').addEventListener('click', () => {
-    const t = document.getElementById('mTimeInput').value;
-    if (!t) return;
-    if (!modalTimes.includes(t)) { modalTimes.push(t); renderModalTimes(); }
-    document.getElementById('mTimeInput').value = '';
-  });
-  document.getElementById('mTimeInput').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') document.getElementById('addTimeBtn').click();
-  });
-
-  document.getElementById('addUrlRowBtn').addEventListener('click', () => {
-    modalUrls.push({ id: generateId(), url: '', label: '' });
-    renderModalUrls();
-  });
-
-  document.getElementById('modalSaveBtn').addEventListener('click', saveModal);
-  document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
-  document.getElementById('scheduleModal').addEventListener('click', (e) => {
-    if (e.target === e.currentTarget) closeModal();
-  });
-
-  const connectBtn = document.getElementById('connectDriveBtn');
-if (connectBtn) connectBtn.addEventListener('click', connectDrive);
-  document.getElementById('disconnectDriveBtn').addEventListener('click', disconnectDrive);
-  document.getElementById('refreshLogsBtn').addEventListener('click', loadData);
-}
-
-// ── 유틸리티 ─────────────────────────────────────────────
 function generateId() { return Math.random().toString(36).slice(2, 10); }
 
 function escHtml(str) {
-  return String(str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return String(str || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 function getPlatform(url) {
@@ -526,37 +375,45 @@ function showToast(msg, type = 'success') {
   setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
-// ── 시작 ─────────────────────────────────────────────────
-init();
-
-// 전역 노출
-window.connectDrive = connectDrive;
-window.disconnectDrive = disconnectDrive;
-
-// 버튼 직접 연결
 document.addEventListener('DOMContentLoaded', () => {
-  const connectBtn = document.getElementById('connectDriveBtn');
-  if (connectBtn) connectBtn.onclick = connectDrive;
-  
-  const disconnectBtn = document.getElementById('disconnectDriveBtn');
-  if (disconnectBtn) disconnectBtn.onclick = disconnectDrive;
-  
-  const addScheduleBtn = document.getElementById('addScheduleBtn');
-  if (addScheduleBtn) addScheduleBtn.onclick = () => openModal();
-  
-  const runAllBtn = document.getElementById('runAllBtn');
-  if (runAllBtn) runAllBtn.onclick = async () => {
+  setupTabs();
+
+  document.getElementById('runAllBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('runAllBtn');
+    btn.textContent = '⏳ 실행 중...'; btn.disabled = true;
     for (const s of schedules.filter(s => s.enabled)) {
       await runScheduleNow(s.id);
       await new Promise(r => setTimeout(r, 1000));
     }
-  };
-  
-  const refreshLogsBtn = document.getElementById('refreshLogsBtn');
-  if (refreshLogsBtn) refreshLogsBtn.onclick = loadData;
-});
-// 버튼 직접 연결 (백업)
-document.addEventListener('DOMContentLoaded', () => {
-  const btn = document.getElementById('connectDriveBtn');
-  if (btn) btn.onclick = connectDrive;
+    btn.textContent = '▶ 지금 전체 캡처'; btn.disabled = false;
+  });
+
+  document.getElementById('addScheduleBtn').addEventListener('click', () => openModal());
+
+  document.getElementById('addTimeBtn').addEventListener('click', () => {
+    const t = document.getElementById('mTimeInput').value;
+    if (!t) return;
+    if (!modalTimes.includes(t)) { modalTimes.push(t); renderModalTimes(); }
+    document.getElementById('mTimeInput').value = '';
+  });
+  document.getElementById('mTimeInput').addEventListener('keypress', e => {
+    if (e.key === 'Enter') document.getElementById('addTimeBtn').click();
+  });
+
+  document.getElementById('addUrlRowBtn').addEventListener('click', () => {
+    modalUrls.push({ id: generateId(), url: '', label: '' });
+    renderModalUrls();
+  });
+
+  document.getElementById('modalSaveBtn').addEventListener('click', saveModal);
+  document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
+  document.getElementById('scheduleModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+
+  document.getElementById('connectDriveBtn').addEventListener('click', connectDrive);
+  document.getElementById('disconnectDriveBtn').addEventListener('click', disconnectDrive);
+  document.getElementById('refreshLogsBtn').addEventListener('click', loadData);
+
+  init();
 });
