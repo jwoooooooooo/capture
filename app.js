@@ -423,3 +423,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
   init();
 });
+// DOMContentLoaded가 이미 실행됐을 경우 직접 실행
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(() => {
+    setupTabs();
+    document.getElementById('runAllBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('runAllBtn');
+      btn.textContent = '⏳ 실행 중...'; btn.disabled = true;
+      for (const s of schedules.filter(s => s.enabled)) {
+        await runScheduleNow(s.id);
+        await new Promise(r => setTimeout(r, 1000));
+      }
+      btn.textContent = '▶ 지금 전체 캡처'; btn.disabled = false;
+    });
+    document.getElementById('addScheduleBtn').addEventListener('click', () => openModal());
+    document.getElementById('addTimeBtn').addEventListener('click', () => {
+      const t = document.getElementById('mTimeInput').value;
+      if (!t) return;
+      if (!modalTimes.includes(t)) { modalTimes.push(t); renderModalTimes(); }
+      document.getElementById('mTimeInput').value = '';
+    });
+    document.getElementById('mTimeInput').addEventListener('keypress', e => {
+      if (e.key === 'Enter') document.getElementById('addTimeBtn').click();
+    });
+    document.getElementById('addUrlRowBtn').addEventListener('click', () => {
+      modalUrls.push({ id: generateId(), url: '', label: '' });
+      renderModalUrls();
+    });
+    document.getElementById('modalSaveBtn').addEventListener('click', saveModal);
+    document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
+    document.getElementById('scheduleModal').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+    document.getElementById('connectDriveBtn').addEventListener('click', connectDrive);
+    document.getElementById('disconnectDriveBtn').addEventListener('click', disconnectDrive);
+    document.getElementById('refreshLogsBtn').addEventListener('click', loadData);
+    init();
+  }, 0);
+}
