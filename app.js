@@ -532,6 +532,29 @@ init();
 // 전역 노출
 window.connectDrive = connectDrive;
 window.disconnectDrive = disconnectDrive;
+
+// 버튼 직접 연결
+document.addEventListener('DOMContentLoaded', () => {
+  const connectBtn = document.getElementById('connectDriveBtn');
+  if (connectBtn) connectBtn.onclick = connectDrive;
+  
+  const disconnectBtn = document.getElementById('disconnectDriveBtn');
+  if (disconnectBtn) disconnectBtn.onclick = disconnectDrive;
+  
+  const addScheduleBtn = document.getElementById('addScheduleBtn');
+  if (addScheduleBtn) addScheduleBtn.onclick = () => openModal();
+  
+  const runAllBtn = document.getElementById('runAllBtn');
+  if (runAllBtn) runAllBtn.onclick = async () => {
+    for (const s of schedules.filter(s => s.enabled)) {
+      await runScheduleNow(s.id);
+      await new Promise(r => setTimeout(r, 1000));
+    }
+  };
+  
+  const refreshLogsBtn = document.getElementById('refreshLogsBtn');
+  if (refreshLogsBtn) refreshLogsBtn.onclick = loadData;
+});
 // 버튼 직접 연결 (백업)
 document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('connectDriveBtn');
