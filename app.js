@@ -527,3 +527,7 @@ function showToast(msg, type = 'success') {
 
 // ── 시작 ─────────────────────────────────────────────────
 init();
+
+// 전역 노출
+window.connectDrive = connectDrive;
+window.disconnectDrive = disconnectDrive;
