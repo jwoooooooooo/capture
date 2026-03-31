@@ -381,83 +381,33 @@ function showToast(msg, type = 'success') {
   setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  setupTabs();
-
-  document.getElementById('runAllBtn').addEventListener('click', async () => {
-    const btn = document.getElementById('runAllBtn');
-    btn.textContent = '⏳ 실행 중...'; btn.disabled = true;
-    for (const s of schedules.filter(s => s.enabled)) {
-      await runScheduleNow(s.id);
-      await new Promise(r => setTimeout(r, 1000));
-    }
-    btn.textContent = '▶ 지금 전체 캡처'; btn.disabled = false;
-  });
-
-  document.getElementById('addScheduleBtn').addEventListener('click', () => openModal());
-
-  document.getElementById('addTimeBtn').addEventListener('click', () => {
-    const t = document.getElementById('mTimeInput').value;
-    if (!t) return;
-    if (!modalTimes.includes(t)) { modalTimes.push(t); renderModalTimes(); }
-    document.getElementById('mTimeInput').value = '';
-  });
-  document.getElementById('mTimeInput').addEventListener('keypress', e => {
-    if (e.key === 'Enter') document.getElementById('addTimeBtn').click();
-  });
-
-  document.getElementById('addUrlRowBtn').addEventListener('click', () => {
-    modalUrls.push({ id: generateId(), url: '', label: '' });
-    renderModalUrls();
-  });
-
-  document.getElementById('modalSaveBtn').addEventListener('click', saveModal);
-  document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
-  document.getElementById('scheduleModal').addEventListener('click', e => {
-    if (e.target === e.currentTarget) closeModal();
-  });
-
-  document.getElementById('connectDriveBtn').addEventListener('click', connectDrive);
-  document.getElementById('disconnectDriveBtn').addEventListener('click', disconnectDrive);
-  document.getElementById('refreshLogsBtn').addEventListener('click', loadData);
-
-  init();
-});
-// DOMContentLoaded가 이미 실행됐을 경우 직접 실행
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-  setTimeout(() => {
-    setupTabs();
-    document.getElementById('runAllBtn').addEventListener('click', async () => {
-      const btn = document.getElementById('runAllBtn');
-      btn.textContent = '⏳ 실행 중...'; btn.disabled = true;
-      for (const s of schedules.filter(s => s.enabled)) {
-        await runScheduleNow(s.id);
-        await new Promise(r => setTimeout(r, 1000));
-      }
-      btn.textContent = '▶ 지금 전체 캡처'; btn.disabled = false;
-    });
-    document.getElementById('addScheduleBtn').addEventListener('click', () => openModal());
-    document.getElementById('addTimeBtn').addEventListener('click', () => {
-      const t = document.getElementById('mTimeInput').value;
-      if (!t) return;
-      if (!modalTimes.includes(t)) { modalTimes.push(t); renderModalTimes(); }
-      document.getElementById('mTimeInput').value = '';
-    });
-    document.getElementById('mTimeInput').addEventListener('keypress', e => {
-      if (e.key === 'Enter') document.getElementById('addTimeBtn').click();
-    });
-    document.getElementById('addUrlRowBtn').addEventListener('click', () => {
-      modalUrls.push({ id: generateId(), url: '', label: '' });
-      renderModalUrls();
-    });
-    document.getElementById('modalSaveBtn').addEventListener('click', saveModal);
-    document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
-    document.getElementById('scheduleModal').addEventListener('click', e => {
-      if (e.target === e.currentTarget) closeModal();
-    });
-    document.getElementById('connectDriveBtn').addEventListener('click', connectDrive);
-    document.getElementById('disconnectDriveBtn').addEventListener('click', disconnectDrive);
-    document.getElementById('refreshLogsBtn').addEventListener('click', loadData);
-    init();
-  }, 0);
-}
+// 즉시 실행
+setupTabs();
+document.getElementById('runAllBtn').onclick = async function() {
+  this.textContent = '⏳ 실행 중...'; this.disabled = true;
+  for (const s of schedules.filter(s => s.enabled)) { await runScheduleNow(s.id); }
+  this.textContent = '▶ 지금 전체 캡처'; this.disabled = false;
+};
+document.getElementById('addScheduleBtn').onclick = function() { openModal(); };
+document.getElementById('addTimeBtn').onclick = function() {
+  const t = document.getElementById('mTimeInput').value;
+  if (!t) return;
+  if (!modalTimes.includes(t)) { modalTimes.push(t); renderModalTimes(); }
+  document.getElementById('mTimeInput').value = '';
+};
+document.getElementById('mTimeInput').onkeypress = function(e) {
+  if (e.key === 'Enter') document.getElementById('addTimeBtn').click();
+};
+document.getElementById('addUrlRowBtn').onclick = function() {
+  modalUrls.push({ id: generateId(), url: '', label: '' });
+  renderModalUrls();
+};
+document.getElementById('modalSaveBtn').onclick = function() { saveModal(); };
+document.getElementById('modalCancelBtn').onclick = function() { closeModal(); };
+document.getElementById('scheduleModal').onclick = function(e) {
+  if (e.target === this) closeModal();
+};
+document.getElementById('connectDriveBtn').onclick = function() { connectDrive(); };
+document.getElementById('disconnectDriveBtn').onclick = function() { disconnectDrive(); };
+document.getElementById('refreshLogsBtn').onclick = function() { loadData(); };
+init();
