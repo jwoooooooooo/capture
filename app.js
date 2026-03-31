@@ -4,7 +4,7 @@
 // ============================================================
 
 // ── 확장 프로그램과 통신 ─────────────────────────────────
-const EXT_ID = 'YOUR_EXTENSION_ID'; // 확장 설치 후 교체
+const EXT_ID = 'dokamfkjdpdpkiaibdaohhmalklkhfdd'; // 확장 설치 후 교체
 
 function sendToExt(msg) {
   return new Promise((resolve, reject) => {
