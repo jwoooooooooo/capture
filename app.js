@@ -2,7 +2,7 @@
 // SNS Monitor WebApp - app.js
 // ============================================================
 // v2
-const EXT_ID = 'dokamfkjdpdpkiaibdaohhmalklkhfdd';
+const EXT_ID = 'heolilimiogheedodmacegnpeidhngam';
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzb2CDFE3zQqBvvsOttfsQKhpyNbjlcIVhs9EUxNaPap0Qxe91HmRsIySaAJZQFZkk/exec';
 
 let schedules = [];
