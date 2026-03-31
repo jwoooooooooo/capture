@@ -43,11 +43,17 @@ async function checkExtension() {
 }
 
 async function loadData() {
-  try {
+try {
     const res = await sendToExt({ type: 'GET_SCHEDULES' });
     schedules = res.schedules || [];
+    // 확장에서 받은 스케줄을 localStorage에도 백업
+    if (schedules.length > 0) {
+      localStorage.setItem('sns_schedules', JSON.stringify(schedules));
+    }
   } catch {
-    schedules = JSON.parse(localStorage.getItem('sns_schedules') || '[]');
+    // 확장 연결 실패 시 localStorage 백업에서 복원 (덮어쓰지 않음)
+    const backup = JSON.parse(localStorage.getItem('sns_schedules') || '[]');
+    if (backup.length > 0) schedules = backup;
   }
   try {
     const res = await sendToExt({ type: 'GET_LOGS' });
