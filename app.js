@@ -49,36 +49,18 @@ async function checkExtension() {
 }
 
 async function loadData() {
-  // Apps Script에서 config 로드 시도 (background 경유 - CORS 우회)
   try {
-    const config = await sendToExt({ type: 'GET_CONFIG' });
-    if (config && config.ok) {
-      schedules = config.schedules || [];
-      blogGroups = config.blogGroups || [];
-      // chrome.storage.local도 동기화
-      try { await sendToExt({ type: 'SAVE_SCHEDULES', schedules: schedules }); } catch(e) {}
-      try { await sendToExt({ type: 'SAVE_BLOG_GROUPS', blogGroups: blogGroups }); } catch(e) {}
-      localStorage.removeItem('sns_blog_groups');
-    } else {
-      throw new Error('config 로드 실패');
-    }
-  } catch(e) {
-    // fallback: chrome.storage.local
-    try {
-      const res = await sendToExt({ type: 'GET_SCHEDULES' });
-      schedules = res.schedules || [];
-    } catch(e2) { schedules = []; }
-    try {
-      const bgRes = await sendToExt({ type: 'GET_BLOG_GROUPS' });
-      blogGroups = bgRes.blogGroups || [];
-    } catch(e2) { blogGroups = []; }
-  }
-
+    const res = await sendToExt({ type: 'GET_SCHEDULES' });
+    schedules = res.schedules || [];
+  } catch(e) { schedules = []; }
   try {
     const res = await sendToExt({ type: 'GET_LOGS' });
     logs = res.logs || [];
   } catch(e) { logs = []; }
-
+  try {
+    const bgRes = await sendToExt({ type: 'GET_BLOG_GROUPS' });
+    blogGroups = bgRes.blogGroups || [];
+  } catch(e) { blogGroups = []; }
   driveConfig = JSON.parse(localStorage.getItem('sns_drive_config') || 'null');
   renderStats();
   renderSchedules();
@@ -477,16 +459,6 @@ async function saveBlogGroups() {
   try {
     await sendToExt({ type: 'SAVE_BLOG_GROUPS', blogGroups: blogGroups });
   } catch(e) {}
-  await saveConfig();
-}
-
-async function saveConfig() {
-  try {
-    await sendToExt({ type: 'SAVE_CONFIG', schedules: schedules, blogGroups: blogGroups });
-    showToast('☁ 클라우드 저장 완료');
-  } catch(e) {
-    showToast('⚠ 클라우드 저장 실패', 'error');
-  }
 }
 
 // ── Drive ────────────────────────────────────────────────
@@ -549,7 +521,6 @@ async function saveSchedules() {
   try {
     await sendToExt({ type: 'SAVE_SCHEDULES', schedules: schedules });
   } catch(e) {}
-  await saveConfig();
 }
 
 function setupTabs() {
