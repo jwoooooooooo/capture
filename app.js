@@ -93,6 +93,7 @@ function renderSchedules() {
         '</div>' +
         '<div class="card-actions">' +
           '<button class="btn btn-ghost btn-sm btn-run" data-id="' + s.id + '">▶ 지금 실행</button>' +
+'<button class="btn btn-danger btn-sm btn-stop" data-id="' + s.id + '" style="display:none">■ 중지</button>' +
           '<button class="btn btn-ghost btn-icon btn-edit" data-id="' + s.id + '">✏</button>' +
           '<button class="btn btn-danger btn-icon btn-delete" data-id="' + s.id + '">🗑</button>' +
           '<button class="btn-expand card-expand-btn">▼</button>' +
@@ -113,6 +114,16 @@ function renderSchedules() {
 
   list.querySelectorAll('.toggle-input').forEach(function(el) {
     el.addEventListener('change', function(e) { toggleSchedule(e.target.dataset.id, e.target.checked); });
+  });
+  list.querySelectorAll('.btn-stop').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      sendToExt({ type: 'STOP_CAPTURE' }).catch(function(){});
+      el.style.display = 'none';
+      const runBtn = document.querySelector('.btn-run[data-id="' + el.dataset.id + '"]');
+      if (runBtn) { runBtn.textContent = '▶ 지금 실행'; runBtn.disabled = false; }
+      showToast('⏹ 캡처가 중지되었습니다');
+    });
   });
   list.querySelectorAll('.btn-run').forEach(function(el) {
     el.addEventListener('click', function(e) { e.stopPropagation(); runScheduleNow(el.dataset.id); });
@@ -161,8 +172,10 @@ async function deleteSchedule(id) {
 }
 
 async function runScheduleNow(id) {
-  const btn = document.querySelector('.btn-run[data-id="' + id + '"]');
+const btn = document.querySelector('.btn-run[data-id="' + id + '"]');
+  const stopBtn = document.querySelector('.btn-stop[data-id="' + id + '"]');
   if (btn) { btn.textContent = '⏳ 실행 중...'; btn.disabled = true; }
+  if (stopBtn) stopBtn.style.display = 'inline-flex';
   try {
     await sendToExt({ type: 'RUN_NOW', scheduleId: id });
     showToast('✅ 캡처가 시작되었습니다');
@@ -171,6 +184,7 @@ async function runScheduleNow(id) {
     showToast('⚠ ' + err.message, 'error');
   }
   if (btn) { btn.textContent = '▶ 지금 실행'; btn.disabled = false; }
+  if (stopBtn) stopBtn.style.display = 'none';
 }
 
 async function startCropMode(schedId, urlId) {
@@ -282,8 +296,9 @@ function renderBlogGroups() {
           '</div>' +
         '</div>' +
         '<div class="card-actions">' +
-          '<button class="btn btn-primary btn-sm btn-group-run" data-id="' + g.id + '">▶ 즉시 캡처</button>' +
-          '<button class="btn btn-ghost btn-sm btn-group-crop" data-id="' + g.id + '">✂ 크롭 설정</button>' +
+'<button class="btn btn-primary btn-sm btn-group-run" data-id="' + g.id + '">▶ 즉시 캡처</button>' +
+'<button class="btn btn-danger btn-sm btn-group-stop" data-id="' + g.id + '" style="display:none">■ 중지</button>' +
+'<button class="btn btn-ghost btn-sm btn-group-crop" data-id="' + g.id + '">✂ 크롭 설정</button>' +
           '<button class="btn btn-ghost btn-icon btn-group-edit" data-id="' + g.id + '">✏</button>' +
           '<button class="btn btn-danger btn-icon btn-group-delete" data-id="' + g.id + '">🗑</button>' +
           '<button class="btn-expand card-expand-btn">▼</button>' +
@@ -298,7 +313,16 @@ function renderBlogGroups() {
       '</div>' +
     '</div>';
   }).join('');
-
+list.querySelectorAll('.btn-group-stop').forEach(function(el) {
+    el.addEventListener('click', function(e) { 
+      e.stopPropagation(); 
+      sendToExt({ type: 'STOP_CAPTURE' }).catch(function(){});
+      el.style.display = 'none';
+      const runBtn = document.querySelector('.btn-group-run[data-id="' + el.dataset.id + '"]');
+      if (runBtn) { runBtn.textContent = '▶ 즉시 캡처'; runBtn.disabled = false; }
+      showToast('⏹ 캡처가 중지되었습니다');
+    });
+  });
   list.querySelectorAll('.btn-group-run').forEach(function(el) {
     el.addEventListener('click', function(e) { e.stopPropagation(); runGroupNow(el.dataset.id); });
   });
@@ -334,7 +358,9 @@ async function runGroupNow(id) {
   const group = blogGroups.find(function(g) { return g.id === id; });
   if (!group) return;
   const btn = document.querySelector('.btn-group-run[data-id="' + id + '"]');
+  const stopBtn = document.querySelector('.btn-group-stop[data-id="' + id + '"]');
   if (btn) { btn.textContent = '⏳ 캡처 중...'; btn.disabled = true; }
+  if (stopBtn) stopBtn.style.display = 'inline-flex';
   try {
     await sendToExt({ type: 'RUN_GROUP', group: group });
     showToast('✅ 캡처가 시작되었습니다');
@@ -343,6 +369,7 @@ async function runGroupNow(id) {
     showToast('⚠ ' + err.message, 'error');
   }
   if (btn) { btn.textContent = '▶ 즉시 캡처'; btn.disabled = false; }
+  if (stopBtn) stopBtn.style.display = 'none';
 }
 
 async function setGroupCrop(id) {
