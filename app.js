@@ -58,17 +58,27 @@ async function loadData() {
   try {
     const bgRes = await sendToExt({ type: 'GET_BLOG_GROUPS' });
     blogGroups = bgRes.blogGroups || [];
-    // localStorage 마이그레이션: 기존 데이터가 있고 storage가 비어있으면 이전
-    if (blogGroups.length === 0) {
-      const legacy = JSON.parse(localStorage.getItem('sns_blog_groups') || '[]');
-      if (legacy.length > 0) {
-        blogGroups = legacy;
-        await sendToExt({ type: 'SAVE_BLOG_GROUPS', blogGroups: blogGroups });
-        localStorage.removeItem('sns_blog_groups');
-      }
+    // localStorage에 구버전 데이터가 있으면 마이그레이션 후 삭제
+    const legacy = JSON.parse(localStorage.getItem('sns_blog_groups') || 'null');
+    if (legacy && legacy.length > 0) {
+      // storage 데이터에 cropRegion이 없는 항목만 legacy로 보완
+      const merged = blogGroups.map(function(g) {
+        if (!g.cropRegion) {
+          const old = legacy.find(function(l) { return l.id === g.id; });
+          return old && old.cropRegion ? Object.assign({}, g, { cropRegion: old.cropRegion }) : g;
+        }
+        return g;
+      });
+      // legacy에만 있는 항목 추가
+      legacy.forEach(function(l) {
+        if (!merged.find(function(g) { return g.id === l.id; })) merged.push(l);
+      });
+      blogGroups = merged;
+      await sendToExt({ type: 'SAVE_BLOG_GROUPS', blogGroups: blogGroups });
+      localStorage.removeItem('sns_blog_groups');
     }
   } catch(e) {
-    blogGroups = JSON.parse(localStorage.getItem('sns_blog_groups') || '[]');
+    blogGroups = [];
   }
   driveConfig = JSON.parse(localStorage.getItem('sns_drive_config') || 'null');
   renderStats();
