@@ -31,7 +31,7 @@ header p{color:var(--text2);font-size:14px}
 .section-title::before{content:'';display:block;width:3px;height:14px;background:linear-gradient(180deg,var(--accent),var(--accent2));border-radius:2px}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all 0.2s;white-space:nowrap}
 .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;box-shadow:0 4px 16px rgba(90,111,255,0.3)}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(90,111,255,0.4)}
+.btn-primary:hover{transform:translateY(-1px)}
 .btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
 .btn-ghost:hover{background:var(--panel);color:var(--text);border-color:var(--accent)}
 .btn-danger{background:rgba(255,80,96,0.12);color:#ff8090;border:1px solid rgba(255,80,96,0.2)}
@@ -51,7 +51,7 @@ input:checked+.toggle-slider::after{transform:translateX(16px)}
 .card-info{flex:1}
 .card-name{font-size:15px;font-weight:600;color:var(--text);margin-bottom:2px}
 .card-meta{font-size:12px;color:var(--text2);display:flex;gap:12px;flex-wrap:wrap}
-.card-actions{display:flex;gap:6px}
+.card-actions{display:flex;gap:6px;flex-wrap:wrap}
 .card-expand-btn{background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;font-size:16px;transition:transform 0.2s}
 .schedule-card.expanded .card-expand-btn{transform:rotate(180deg)}
 .card-body{padding:0 20px;max-height:0;overflow:hidden;transition:max-height 0.3s ease,padding 0.3s}
@@ -62,17 +62,12 @@ input:checked+.toggle-slider::after{transform:translateX(16px)}
 .url-table tr:last-child td{border-bottom:none}
 .url-cell{font-size:12px;color:var(--text2);font-family:var(--mono);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .label-cell{font-size:13px;color:var(--text);font-weight:500}
-.platform-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
-.platform-badge.naver{background:rgba(0,200,80,0.1);color:#40c060;border:1px solid rgba(0,200,80,0.2)}
-.platform-badge.instagram{background:rgba(225,100,150,0.1);color:#e070a0;border:1px solid rgba(225,100,150,0.2)}
-.platform-badge.youtube{background:rgba(255,60,60,0.1);color:#ff7060;border:1px solid rgba(255,60,60,0.2)}
 .crop-status{font-size:11px;display:inline-flex;align-items:center;gap:4px}
 .crop-status.set{color:var(--success)}
 .crop-status.unset{color:var(--text2)}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:1000;display:none;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal{background:var(--panel);border:1px solid var(--border2);border-radius:16px;padding:28px;width:90%;max-width:500px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.6);animation:modalIn 0.2s ease}
-@keyframes modalIn{from{opacity:0;transform:scale(0.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal{background:var(--panel);border:1px solid var(--border2);border-radius:16px;padding:28px;width:90%;max-width:520px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.6)}
 .modal h2{font-size:18px;margin-bottom:20px;color:var(--text)}
 .modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
 .form-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
@@ -84,7 +79,6 @@ input::placeholder{color:#404060}
 .time-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
 .time-tag{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);padding:4px 10px;border-radius:20px;font-size:13px;font-family:var(--mono);color:#a0b0ff}
 .time-tag button{background:none;border:none;color:var(--text2);cursor:pointer;padding:0;line-height:1;font-size:14px}
-.time-tag button:hover{color:var(--error)}
 .add-time-row{display:flex;gap:8px;align-items:center}
 .add-url-form{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:8px}
 .drive-panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:24px}
@@ -97,8 +91,9 @@ input::placeholder{color:#404060}
 .log-url-cell{color:var(--text2);font-family:var(--mono);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .log-time-cell{color:var(--text2);white-space:nowrap}
 .log-empty{text-align:center;color:var(--text2);padding:32px;font-size:13px}
-#toast{position:fixed;bottom:28px;right:28px;background:var(--panel);border:1px solid var(--border2);color:var(--text);padding:12px 20px;border-radius:10px;font-size:13px;z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,0.5);transform:translateY(20px);opacity:0;transition:all 0.3s;display:flex;align-items:center;gap:8px}
+#toast{position:fixed;bottom:28px;right:28px;background:var(--panel);border:1px solid var(--border2);color:var(--text);padding:12px 20px;border-radius:10px;font-size:13px;z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,0.5);transform:translateY(20px);opacity:0;transition:all 0.3s}
 #toast.show{transform:translateY(0);opacity:1}
+.blog-desc{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.7}
 </style>
 </head>
 <body>
@@ -110,7 +105,7 @@ input::placeholder{color:#404060}
     </div>
     <div class="header-right">
       <div id="extStatus" class="btn btn-ghost btn-sm">⏳ 확장 확인 중...</div>
-      <button class="btn btn-primary btn-sm" id="runAllBtn">▶ 지금 전체 캡처</button>
+      <button class="btn btn-primary btn-sm" id="runAllBtn">▶ 전체 자동캡처 실행</button>
     </div>
   </header>
 
@@ -122,11 +117,13 @@ input::placeholder{color:#404060}
   </div>
 
   <div class="tabs">
-    <button class="tab-btn active" data-tab="schedules">스케줄 관리</button>
+    <button class="tab-btn active" data-tab="schedules">통합검색 자동캡처</button>
+    <button class="tab-btn" data-tab="blog">블로그/카페 즉시캡처</button>
     <button class="tab-btn" data-tab="drive">Drive 설정</button>
     <button class="tab-btn" data-tab="logs">캡처 로그</button>
   </div>
 
+  <!-- 통합검색 자동캡처 -->
   <div class="tab-panel active" id="tab-schedules">
     <div class="section">
       <div class="section-header">
@@ -139,6 +136,25 @@ input::placeholder{color:#404060}
     </div>
   </div>
 
+  <!-- 블로그/카페 즉시캡처 -->
+  <div class="tab-panel" id="tab-blog">
+    <div class="section">
+      <div class="blog-desc">
+        📌 블로그/카페 링크를 묶음으로 등록하고 즉시 캡처하세요.<br>
+        크롭 설정은 묶음 단위로 적용되며, 등록된 모든 URL에 동일하게 적용됩니다.<br>
+        캡처 후 묶음은 삭제되지 않아 반복 사용 가능합니다.
+      </div>
+      <div class="section-header">
+        <div class="section-title">캡처 묶음</div>
+        <button class="btn btn-primary btn-sm" id="addGroupBtn">+ 묶음 추가</button>
+      </div>
+      <div class="schedule-list" id="blogGroupList">
+        <div style="text-align:center;color:var(--text2);padding:40px;font-size:14px;">묶음이 없습니다. 위의 버튼으로 추가해주세요.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drive 설정 -->
   <div class="tab-panel" id="tab-drive">
     <div class="section">
       <div class="section-title" style="margin-bottom:20px">Google Drive 연결</div>
@@ -156,6 +172,7 @@ input::placeholder{color:#404060}
     </div>
   </div>
 
+  <!-- 캡처 로그 -->
   <div class="tab-panel" id="tab-logs">
     <div class="section">
       <div class="section-header">
@@ -164,7 +181,7 @@ input::placeholder{color:#404060}
       </div>
       <div style="background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden">
         <table class="log-table">
-          <thead><tr><th>상태</th><th>스케줄</th><th>URL</th><th>결과</th><th>시각</th></tr></thead>
+          <thead><tr><th>상태</th><th>스케줄/묶음</th><th>URL</th><th>결과</th><th>시각</th></tr></thead>
           <tbody id="logTableBody"><tr><td colspan="5" class="log-empty">로그 없음</td></tr></tbody>
         </table>
       </div>
@@ -172,18 +189,18 @@ input::placeholder{color:#404060}
   </div>
 </div>
 
-<!-- 모달 -->
+<!-- 스케줄 모달 -->
 <div class="modal-overlay" id="scheduleModal">
   <div class="modal">
     <h2 id="modalTitle">스케줄 추가</h2>
     <div class="form-row">
       <div class="input-group">
         <label class="input-label">스케줄 이름</label>
-        <input type="text" id="mName" placeholder="예: 네이버 블로그 모니터링">
+        <input type="text" id="mName" placeholder="예: 일본어학습지 검색">
       </div>
     </div>
     <div style="margin-bottom:14px">
-      <label class="input-label" style="display:block;margin-bottom:8px">실행 시간 (여러 개 추가 가능)</label>
+      <label class="input-label" style="display:block;margin-bottom:8px">실행 시간 (여러 개 가능)</label>
       <div class="time-tags" id="timeTags"></div>
       <div class="add-time-row">
         <input type="time" id="mTimeInput" style="width:140px">
@@ -192,7 +209,7 @@ input::placeholder{color:#404060}
     </div>
     <div style="margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <label class="input-label">URL 목록</label>
+        <label class="input-label">통합검색 URL 목록</label>
         <button class="btn btn-ghost btn-sm" id="addUrlRowBtn">+ URL 추가</button>
       </div>
       <div id="mUrlList"></div>
@@ -217,17 +234,31 @@ input::placeholder{color:#404060}
   </div>
 </div>
 
-<div id="toast"></div>
+<!-- 블로그/카페 묶음 모달 -->
+<div class="modal-overlay" id="groupModal">
+  <div class="modal">
+    <h2 id="groupModalTitle">묶음 추가</h2>
+    <div class="form-row">
+      <div class="input-group">
+        <label class="input-label">묶음 이름</label>
+        <input type="text" id="gName" placeholder="예: 일본어학습지 블로그 1차">
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <label class="input-label">블로그/카페 URL 목록</label>
+        <button class="btn btn-ghost btn-sm" id="addGroupUrlBtn">+ URL 추가</button>
+      </div>
+      <div id="gUrlList"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="groupModalCancelBtn">취소</button>
+      <button class="btn btn-primary" id="groupModalSaveBtn">저장</button>
+    </div>
+  </div>
+</div>
 
-<script>
-window.addEventListener('load', function() {
-  var s = document.createElement('script');
-  s.src = 'app.js';
-  s.onload = function() {
-    if (typeof setupApp === 'function') setupApp();
-  };
-  document.body.appendChild(s);
-});
-</script>
+<div id="toast"></div>
+<script src="app.js"></script>
 </body>
 </html>
