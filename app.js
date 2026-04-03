@@ -478,7 +478,10 @@ async function saveBlogGroups() {
 async function saveConfig() {
   try {
     await sendToExt({ type: 'SAVE_CONFIG', schedules: schedules, blogGroups: blogGroups });
-  } catch(e) {}
+    showToast('☁ 클라우드 저장 완료');
+  } catch(e) {
+    showToast('⚠ 클라우드 저장 실패', 'error');
+  }
 }
 
 // ── Drive ────────────────────────────────────────────────
@@ -607,9 +610,5 @@ document.getElementById('groupModal').onclick = function(e) { if (e.target === t
 document.getElementById('connectDriveBtn').onclick = function() { connectDrive(); };
 document.getElementById('disconnectDriveBtn').onclick = function() { disconnectDrive(); };
 document.getElementById('refreshLogsBtn').onclick = function() { loadData(); };
-
-document.addEventListener('visibilitychange', function() {
-  if (document.visibilityState === 'visible') loadData();
-});
 
 init();
