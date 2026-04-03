@@ -31,16 +31,21 @@ async function init() {
 
 async function checkExtension() {
   const el = document.getElementById('extStatus');
-  try {
-    await sendToExt({ type: 'GET_SCHEDULES' });
-    el.textContent = '✅ 확장 연결됨';
-    el.style.color = 'var(--success)';
-    el.style.borderColor = 'rgba(60,200,100,0.3)';
-  } catch(e) {
-    el.textContent = '⚠ 확장 프로그램 필요';
-    el.style.color = 'var(--warn)';
-    el.style.borderColor = 'rgba(255,176,64,0.3)';
+  // 최대 5번, 1초 간격으로 재시도 (service worker 깨어날 때까지 대기)
+  for (var i = 0; i < 5; i++) {
+    try {
+      await sendToExt({ type: 'GET_SCHEDULES' });
+      el.textContent = '✅ 확장 연결됨';
+      el.style.color = 'var(--success)';
+      el.style.borderColor = 'rgba(60,200,100,0.3)';
+      return;
+    } catch(e) {
+      if (i < 4) await new Promise(function(r) { setTimeout(r, 1000); });
+    }
   }
+  el.textContent = '⚠ 확장 프로그램 필요';
+  el.style.color = 'var(--warn)';
+  el.style.borderColor = 'rgba(255,176,64,0.3)';
 }
 
 async function loadData() {
