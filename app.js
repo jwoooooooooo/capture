@@ -44,29 +44,25 @@ async function checkExtension() {
 }
 
 async function loadData() {
-  // Apps Script에서 config 로드 시도
+  // Apps Script에서 config 로드 시도 (background 경유 - CORS 우회)
   try {
-    const res = await fetch(APPS_SCRIPT_URL + '?type=GET_CONFIG');
-    const config = await res.json();
-    if (config.ok) {
+    const config = await sendToExt({ type: 'GET_CONFIG' });
+    if (config && config.ok) {
       schedules = config.schedules || [];
       blogGroups = config.blogGroups || [];
       // chrome.storage.local도 동기화
       try { await sendToExt({ type: 'SAVE_SCHEDULES', schedules: schedules }); } catch(e) {}
       try { await sendToExt({ type: 'SAVE_BLOG_GROUPS', blogGroups: blogGroups }); } catch(e) {}
-      // localStorage 구버전 데이터 정리
       localStorage.removeItem('sns_blog_groups');
     } else {
       throw new Error('config 로드 실패');
     }
   } catch(e) {
-    // Apps Script 실패 시 chrome.storage.local fallback
+    // fallback: chrome.storage.local
     try {
       const res = await sendToExt({ type: 'GET_SCHEDULES' });
       schedules = res.schedules || [];
-    } catch(e2) {
-      schedules = JSON.parse(localStorage.getItem('sns_schedules') || '[]');
-    }
+    } catch(e2) { schedules = []; }
     try {
       const bgRes = await sendToExt({ type: 'GET_BLOG_GROUPS' });
       blogGroups = bgRes.blogGroups || [];
@@ -481,11 +477,7 @@ async function saveBlogGroups() {
 
 async function saveConfig() {
   try {
-    await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'SAVE_CONFIG', schedules: schedules, blogGroups: blogGroups })
-    });
+    await sendToExt({ type: 'SAVE_CONFIG', schedules: schedules, blogGroups: blogGroups });
   } catch(e) {}
 }
 
