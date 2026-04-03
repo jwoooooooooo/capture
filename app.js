@@ -55,7 +55,21 @@ async function loadData() {
     const res = await sendToExt({ type: 'GET_LOGS' });
     logs = res.logs || [];
   } catch(e) { logs = []; }
-  blogGroups = JSON.parse(localStorage.getItem('sns_blog_groups') || '[]');
+  try {
+    const bgRes = await sendToExt({ type: 'GET_BLOG_GROUPS' });
+    blogGroups = bgRes.blogGroups || [];
+    // localStorage 마이그레이션: 기존 데이터가 있고 storage가 비어있으면 이전
+    if (blogGroups.length === 0) {
+      const legacy = JSON.parse(localStorage.getItem('sns_blog_groups') || '[]');
+      if (legacy.length > 0) {
+        blogGroups = legacy;
+        await sendToExt({ type: 'SAVE_BLOG_GROUPS', blogGroups: blogGroups });
+        localStorage.removeItem('sns_blog_groups');
+      }
+    }
+  } catch(e) {
+    blogGroups = JSON.parse(localStorage.getItem('sns_blog_groups') || '[]');
+  }
   driveConfig = JSON.parse(localStorage.getItem('sns_drive_config') || 'null');
   renderStats();
   renderSchedules();
@@ -179,12 +193,11 @@ async function runScheduleNow(id) {
   try {
     await sendToExt({ type: 'RUN_NOW', scheduleId: id });
     showToast('✅ 캡처가 시작되었습니다');
-    setTimeout(loadData, 5000);
   } catch(err) {
     showToast('⚠ ' + err.message, 'error');
+    if (btn) { btn.textContent = '▶ 지금 실행'; btn.disabled = false; }
+    if (stopBtn) stopBtn.style.display = 'none';
   }
-  if (btn) { btn.textContent = '▶ 지금 실행'; btn.disabled = false; }
-  if (stopBtn) stopBtn.style.display = 'none';
 }
 
 async function startCropMode(schedId, urlId) {
@@ -365,12 +378,11 @@ async function runGroupNow(id) {
   try {
     await sendToExt({ type: 'RUN_GROUP', group: group });
     showToast('✅ 캡처가 시작되었습니다');
-    setTimeout(loadData, 5000);
   } catch(err) {
     showToast('⚠ ' + err.message, 'error');
+    if (btn) { btn.textContent = '▶ 즉시 캡처'; btn.disabled = false; }
+    if (stopBtn) stopBtn.style.display = 'none';
   }
-  if (btn) { btn.textContent = '▶ 즉시 캡처'; btn.disabled = false; }
-  if (stopBtn) stopBtn.style.display = 'none';
 }
 
 async function setGroupCrop(id) {
@@ -452,8 +464,12 @@ async function saveGroupModal() {
   showToast('✅ ' + urls.length + '개 URL이 저장되었습니다');
 }
 
-function saveBlogGroups() {
-  localStorage.setItem('sns_blog_groups', JSON.stringify(blogGroups));
+async function saveBlogGroups() {
+  try {
+    await sendToExt({ type: 'SAVE_BLOG_GROUPS', blogGroups: blogGroups });
+  } catch(e) {
+    localStorage.setItem('sns_blog_groups', JSON.stringify(blogGroups));
+  }
 }
 
 // ── Drive ────────────────────────────────────────────────
@@ -584,5 +600,9 @@ document.getElementById('groupModal').onclick = function(e) { if (e.target === t
 document.getElementById('connectDriveBtn').onclick = function() { connectDrive(); };
 document.getElementById('disconnectDriveBtn').onclick = function() { disconnectDrive(); };
 document.getElementById('refreshLogsBtn').onclick = function() { loadData(); };
+
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible') loadData();
+});
 
 init();
