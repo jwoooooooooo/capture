@@ -44,42 +44,40 @@ async function checkExtension() {
 }
 
 async function loadData() {
+  // Apps Script에서 config 로드 시도
   try {
-    const res = await sendToExt({ type: 'GET_SCHEDULES' });
-    schedules = res.schedules || [];
-    localStorage.setItem('sns_schedules', JSON.stringify(schedules));
+    const res = await fetch(APPS_SCRIPT_URL + '?type=GET_CONFIG');
+    const config = await res.json();
+    if (config.ok) {
+      schedules = config.schedules || [];
+      blogGroups = config.blogGroups || [];
+      // chrome.storage.local도 동기화
+      try { await sendToExt({ type: 'SAVE_SCHEDULES', schedules: schedules }); } catch(e) {}
+      try { await sendToExt({ type: 'SAVE_BLOG_GROUPS', blogGroups: blogGroups }); } catch(e) {}
+      // localStorage 구버전 데이터 정리
+      localStorage.removeItem('sns_blog_groups');
+    } else {
+      throw new Error('config 로드 실패');
+    }
   } catch(e) {
-    schedules = JSON.parse(localStorage.getItem('sns_schedules') || '[]');
+    // Apps Script 실패 시 chrome.storage.local fallback
+    try {
+      const res = await sendToExt({ type: 'GET_SCHEDULES' });
+      schedules = res.schedules || [];
+    } catch(e2) {
+      schedules = JSON.parse(localStorage.getItem('sns_schedules') || '[]');
+    }
+    try {
+      const bgRes = await sendToExt({ type: 'GET_BLOG_GROUPS' });
+      blogGroups = bgRes.blogGroups || [];
+    } catch(e2) { blogGroups = []; }
   }
+
   try {
     const res = await sendToExt({ type: 'GET_LOGS' });
     logs = res.logs || [];
   } catch(e) { logs = []; }
-  try {
-    const bgRes = await sendToExt({ type: 'GET_BLOG_GROUPS' });
-    blogGroups = bgRes.blogGroups || [];
-    // localStorage에 구버전 데이터가 있으면 마이그레이션 후 삭제
-    const legacy = JSON.parse(localStorage.getItem('sns_blog_groups') || 'null');
-    if (legacy && legacy.length > 0) {
-      // storage 데이터에 cropRegion이 없는 항목만 legacy로 보완
-      const merged = blogGroups.map(function(g) {
-        if (!g.cropRegion) {
-          const old = legacy.find(function(l) { return l.id === g.id; });
-          return old && old.cropRegion ? Object.assign({}, g, { cropRegion: old.cropRegion }) : g;
-        }
-        return g;
-      });
-      // legacy에만 있는 항목 추가
-      legacy.forEach(function(l) {
-        if (!merged.find(function(g) { return g.id === l.id; })) merged.push(l);
-      });
-      blogGroups = merged;
-      await sendToExt({ type: 'SAVE_BLOG_GROUPS', blogGroups: blogGroups });
-      localStorage.removeItem('sns_blog_groups');
-    }
-  } catch(e) {
-    blogGroups = [];
-  }
+
   driveConfig = JSON.parse(localStorage.getItem('sns_drive_config') || 'null');
   renderStats();
   renderSchedules();
@@ -477,9 +475,18 @@ async function saveGroupModal() {
 async function saveBlogGroups() {
   try {
     await sendToExt({ type: 'SAVE_BLOG_GROUPS', blogGroups: blogGroups });
-  } catch(e) {
-    localStorage.setItem('sns_blog_groups', JSON.stringify(blogGroups));
-  }
+  } catch(e) {}
+  await saveConfig();
+}
+
+async function saveConfig() {
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'SAVE_CONFIG', schedules: schedules, blogGroups: blogGroups })
+    });
+  } catch(e) {}
 }
 
 // ── Drive ────────────────────────────────────────────────
@@ -541,10 +548,8 @@ function renderLogs() {
 async function saveSchedules() {
   try {
     await sendToExt({ type: 'SAVE_SCHEDULES', schedules: schedules });
-    localStorage.setItem('sns_schedules', JSON.stringify(schedules));
-  } catch(e) {
-    localStorage.setItem('sns_schedules', JSON.stringify(schedules));
-  }
+  } catch(e) {}
+  await saveConfig();
 }
 
 function setupTabs() {
