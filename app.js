@@ -556,5 +556,14 @@ document.getElementById('groupModal').onclick = function(e) { if (e.target === t
 document.getElementById('connectDriveBtn').onclick = function() { connectDrive(); };
 document.getElementById('disconnectDriveBtn').onclick = function() { disconnectDrive(); };
 document.getElementById('refreshLogsBtn').onclick = function() { loadData(); };
-
+chrome.runtime.onMessage.addListener(function(msg) {
+  if (msg.type === 'SET_GROUP_CROP_REGION' || (msg.region && msg.groupId)) {
+    blogGroups = blogGroups.map(function(g) {
+      return g.id === msg.groupId ? Object.assign({}, g, { cropRegion: msg.region }) : g;
+    });
+    saveBlogGroups();
+    renderBlogGroups();
+    showToast('✅ 크롭 영역이 저장되었습니다');
+  }
+});
 init();
