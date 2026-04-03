@@ -93,7 +93,7 @@ function renderSchedules() {
         '</div>' +
         '<div class="card-actions">' +
           '<button class="btn btn-ghost btn-sm btn-run" data-id="' + s.id + '">▶ 지금 실행</button>' +
-'<button class="btn btn-danger btn-sm btn-stop" data-id="' + s.id + '" style="display:none">■ 중지</button>' +
+          '<button class="btn btn-danger btn-sm btn-stop" data-id="' + s.id + '" style="display:none">■ 중지</button>' +
           '<button class="btn btn-ghost btn-icon btn-edit" data-id="' + s.id + '">✏</button>' +
           '<button class="btn btn-danger btn-icon btn-delete" data-id="' + s.id + '">🗑</button>' +
           '<button class="btn-expand card-expand-btn">▼</button>' +
@@ -172,7 +172,7 @@ async function deleteSchedule(id) {
 }
 
 async function runScheduleNow(id) {
-const btn = document.querySelector('.btn-run[data-id="' + id + '"]');
+  const btn = document.querySelector('.btn-run[data-id="' + id + '"]');
   const stopBtn = document.querySelector('.btn-stop[data-id="' + id + '"]');
   if (btn) { btn.textContent = '⏳ 실행 중...'; btn.disabled = true; }
   if (stopBtn) stopBtn.style.display = 'inline-flex';
@@ -296,9 +296,9 @@ function renderBlogGroups() {
           '</div>' +
         '</div>' +
         '<div class="card-actions">' +
-'<button class="btn btn-primary btn-sm btn-group-run" data-id="' + g.id + '">▶ 즉시 캡처</button>' +
-'<button class="btn btn-danger btn-sm btn-group-stop" data-id="' + g.id + '" style="display:none">■ 중지</button>' +
-'<button class="btn btn-ghost btn-sm btn-group-crop" data-id="' + g.id + '">✂ 크롭 설정</button>' +
+          '<button class="btn btn-primary btn-sm btn-group-run" data-id="' + g.id + '">▶ 즉시 캡처</button>' +
+          '<button class="btn btn-danger btn-sm btn-group-stop" data-id="' + g.id + '" style="display:none">■ 중지</button>' +
+          '<button class="btn btn-ghost btn-sm btn-group-crop" data-id="' + g.id + '">✂ 크롭 설정</button>' +
           '<button class="btn btn-ghost btn-icon btn-group-edit" data-id="' + g.id + '">✏</button>' +
           '<button class="btn btn-danger btn-icon btn-group-delete" data-id="' + g.id + '">🗑</button>' +
           '<button class="btn-expand card-expand-btn">▼</button>' +
@@ -313,9 +313,10 @@ function renderBlogGroups() {
       '</div>' +
     '</div>';
   }).join('');
-list.querySelectorAll('.btn-group-stop').forEach(function(el) {
-    el.addEventListener('click', function(e) { 
-      e.stopPropagation(); 
+
+  list.querySelectorAll('.btn-group-stop').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
       sendToExt({ type: 'STOP_CAPTURE' }).catch(function(){});
       el.style.display = 'none';
       const runBtn = document.querySelector('.btn-group-run[data-id="' + el.dataset.id + '"]');
@@ -583,14 +584,5 @@ document.getElementById('groupModal').onclick = function(e) { if (e.target === t
 document.getElementById('connectDriveBtn').onclick = function() { connectDrive(); };
 document.getElementById('disconnectDriveBtn').onclick = function() { disconnectDrive(); };
 document.getElementById('refreshLogsBtn').onclick = function() { loadData(); };
-chrome.runtime.onMessage.addListener(function(msg) {
-  if (msg.type === 'SET_GROUP_CROP_REGION' || (msg.region && msg.groupId)) {
-    blogGroups = blogGroups.map(function(g) {
-      return g.id === msg.groupId ? Object.assign({}, g, { cropRegion: msg.region }) : g;
-    });
-    saveBlogGroups();
-    renderBlogGroups();
-    showToast('✅ 크롭 영역이 저장되었습니다');
-  }
-});
+
 init();
