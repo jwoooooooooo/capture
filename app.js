@@ -179,12 +179,11 @@ async function runScheduleNow(id) {
   try {
     await sendToExt({ type: 'RUN_NOW', scheduleId: id });
     showToast('✅ 캡처가 시작되었습니다');
-    setTimeout(loadData, 5000);
   } catch(err) {
     showToast('⚠ ' + err.message, 'error');
+    if (btn) { btn.textContent = '▶ 지금 실행'; btn.disabled = false; }
+    if (stopBtn) stopBtn.style.display = 'none';
   }
-  if (btn) { btn.textContent = '▶ 지금 실행'; btn.disabled = false; }
-  if (stopBtn) stopBtn.style.display = 'none';
 }
 
 async function startCropMode(schedId, urlId) {
@@ -365,12 +364,11 @@ async function runGroupNow(id) {
   try {
     await sendToExt({ type: 'RUN_GROUP', group: group });
     showToast('✅ 캡처가 시작되었습니다');
-    setTimeout(loadData, 5000);
   } catch(err) {
     showToast('⚠ ' + err.message, 'error');
+    if (btn) { btn.textContent = '▶ 즉시 캡처'; btn.disabled = false; }
+    if (stopBtn) stopBtn.style.display = 'none';
   }
-  if (btn) { btn.textContent = '▶ 즉시 캡처'; btn.disabled = false; }
-  if (stopBtn) stopBtn.style.display = 'none';
 }
 
 async function setGroupCrop(id) {
