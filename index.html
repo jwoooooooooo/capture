@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SNS Monitor</title>
+<title>캡처 프로그램</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=DM+Mono&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -102,7 +102,7 @@ textarea{resize:vertical;min-height:160px;line-height:1.6}
 <div class="app">
   <header>
     <div>
-      <h1>📸 SNS Monitor</h1>
+      <h1>📸 캡처 프로그램</h1>
       <p>자동 캡처 & Google Drive 저장 관리</p>
     </div>
     <div class="header-right">
@@ -118,11 +118,14 @@ textarea{resize:vertical;min-height:160px;line-height:1.6}
     <div class="stat-card"><div class="stat-label">성공률</div><div class="stat-value" id="statRate">—</div><div class="stat-sub">최근 30일</div></div>
   </div>
 
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="schedules">통합검색 자동캡처</button>
-    <button class="tab-btn" data-tab="blog">컨텐츠 즉시캡처</button>
-    <button class="tab-btn" data-tab="drive">Drive 설정</button>
-    <button class="tab-btn" data-tab="logs">캡처 로그</button>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:28px;">
+    <div class="tabs" style="flex:1;margin-bottom:0;">
+      <button class="tab-btn active" data-tab="schedules">통합검색 자동캡처</button>
+      <button class="tab-btn" data-tab="blog">컨텐츠 즉시캡처</button>
+      <button class="tab-btn" data-tab="drive">Drive 설정</button>
+      <button class="tab-btn" data-tab="logs">캡처 로그</button>
+    </div>
+    <a href="guide.html" target="_blank" class="btn btn-ghost btn-sm" style="white-space:nowrap;flex-shrink:0;">📖 사용 가이드</a>
   </div>
 
   <!-- 통합검색 자동캡처 -->
