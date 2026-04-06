@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>캡처 프로그램 사용 가이드</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f1a;
+    --bg2: #131626;
+    --bg3: #1a1e35;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(99,120,255,0.3);
+    --text: #e8eaf6;
+    --text2: #8892b0;
+    --accent: #6378ff;
+    --accent2: #a78bfa;
+    --success: #3cceA0;
+    --warn: #f59e0b;
+    --num: #6378ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.8;
+    font-size: 15px;
+  }
+
+  /* 헤더 */
+  .hero {
+    background: linear-gradient(135deg, #0d0f1a 0%, #1a1035 50%, #0d1a2e 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 60px 40px 50px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -80px; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse, rgba(99,120,255,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(99,120,255,0.15);
+    border: 1px solid var(--border2);
+    color: var(--accent2);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+  .hero h1 {
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, #fff 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero p {
+    color: var(--text2);
+    font-size: 15px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  /* 레이아웃 */
+  .layout {
+    display: flex;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    gap: 40px;
+    align-items: flex-start;
+  }
+
+  /* 사이드바 */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 24px;
+  }
+  .sidebar-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 12px;
+    padding-left: 12px;
+  }
+  .sidebar nav a {
+    display: block;
+    padding: 8px 12px;
+    color: var(--text2);
+    text-decoration: none;
+    font-size: 13px;
+    border-left: 2px solid transparent;
+    transition: all 0.2s;
+    border-radius: 0 6px 6px 0;
+  }
+  .sidebar nav a:hover,
+  .sidebar nav a.active {
+    color: var(--text);
+    border-left-color: var(--accent);
+    background: rgba(99,120,255,0.08);
+  }
+  .sidebar nav .nav-section {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent2);
+    padding: 14px 12px 4px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* 메인 콘텐츠 */
+  .content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* 섹션 */
+  .section {
+    margin-bottom: 56px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .section-desc {
+    color: var(--text2);
+    font-size: 13px;
+    margin-top: 2px;
+  }
+
+  /* 스텝 카드 */
+  .step {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 12px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .step:hover { border-color: rgba(99,120,255,0.2); }
+  .step-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .step-num {
+    width: 26px; height: 26px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    color: var(--accent2);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-content { flex: 1; }
+  .step-title {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+  .step-body {
+    color: var(--text2);
+    font-size: 14px;
+    line-height: 1.75;
+  }
+  .step-body strong { color: var(--text); font-weight: 600; }
+
+  /* 서브스텝 */
+  .substeps {
+    margin-top: 10px;
+    padding-left: 4px;
+  }
+  .substep {
+    display: flex;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 14px;
+    color: var(--text2);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .substep:last-child { border-bottom: none; }
+  .substep-arrow {
+    color: var(--accent);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .substep strong { color: var(--text); }
+
+  /* 코드/경로 */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: rgba(99,120,255,0.12);
+    border: 1px solid rgba(99,120,255,0.2);
+    color: var(--accent2);
+    padding: 2px 7px;
+    border-radius: 5px;
+  }
+
+  /* 팁 박스 */
+  .tip {
+    background: rgba(99,120,255,0.08);
+    border: 1px solid rgba(99,120,255,0.2);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text2);
+  }
+  .tip strong { color: var(--accent2); }
+  .tip-icon { margin-right: 6px; }
+
+  .warn-box {
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.25);
+    border-left: 3px solid var(--warn);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text2);
+  }
+  .warn-box strong { color: var(--warn); }
+
+  /* 플랫폼 배지 */
+  .platform-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 14px 0;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid;
+  }
+  .badge-naver { background: rgba(3,199,90,0.1); border-color: rgba(3,199,90,0.3); color: #03c75a; }
+  .badge-insta { background: rgba(225,48,108,0.1); border-color: rgba(225,48,108,0.3); color: #e1306c; }
+  .badge-youtube { background: rgba(255,0,0,0.1); border-color: rgba(255,0,0,0.3); color: #ff4444; }
+
+  /* 기능 카드 그리드 */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .feature-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .feature-card-icon { font-size: 22px; margin-bottom: 8px; }
+  .feature-card-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .feature-card-desc { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+  /* 구분선 */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 32px 0;
+  }
+
+  /* 반응형 */
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; padding: 24px 16px; }
+    .sidebar { width: 100%; position: static; }
+    .feature-grid { grid-template-columns: 1fr; }
+    .hero { padding: 40px 20px 36px; }
+    .hero h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">User Guide</div>
+  <h1>📸 캡처 프로그램 사용 가이드</h1>
+  <p>네이버 블로그·카페, 인스타그램 콘텐츠를 자동으로 캡처하고 Google Drive에 저장하는 도구입니다.</p>
+</div>
+
+<div class="layout">
+
+  <!-- 사이드바 -->
+  <aside class="sidebar">
+    <div class="sidebar-title">목차</div>
+    <nav>
+      <div class="nav-section">설치</div>
+      <a href="#install">① 확장 프로그램 설치</a>
+      <a href="#webapp">② 웹앱 접속</a>
+      <div class="nav-section">기능</div>
+      <a href="#auto">③ 통합검색 자동캡처</a>
+      <a href="#instant">④ 컨텐츠 즉시캡처</a>
+      <a href="#crop">⑤ 크롭 설정</a>
+      <a href="#drive">⑥ Drive 설정</a>
+      <a href="#log">⑦ 캡처 로그</a>
+      <div class="nav-section">참고</div>
+      <a href="#faq">자주 묻는 질문</a>
+    </nav>
+  </aside>
+
+  <!-- 본문 -->
+  <main class="content">
+
+    <!-- 시작 전 안내 -->
+    <div class="section" id="intro">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:32px;">
+        <div style="font-weight:700;font-size:16px;margin-bottom:12px;">🚀 캡처 프로그램이란?</div>
+        <div style="color:var(--text2);font-size:14px;line-height:1.8;margin-bottom:16px;">
+          광고주 보고를 위해 SNS 콘텐츠를 캡처하고 Google Drive에 자동 저장하는 도구입니다.<br>
+          <strong style="color:var(--text);">크롬 확장 프로그램</strong>과 <strong style="color:var(--text);">웹앱(관리 페이지)</strong> 두 가지를 함께 사용합니다.
+        </div>
+        <div class="platform-badges">
+          <span class="badge badge-naver">📝 네이버 블로그</span>
+          <span class="badge badge-naver">☕ 네이버 카페</span>
+          <span class="badge badge-insta">📸 인스타그램</span>
+        </div>
+        <div class="feature-grid" style="margin-top:16px;margin-bottom:0;">
+          <div class="feature-card">
+            <div class="feature-card-icon">⏱</div>
+            <div class="feature-card-title">통합검색 자동캡처</div>
+            <div class="feature-card-desc">지정한 시간에 네이버 통합검색 결과를 자동으로 캡처합니다.</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">⚡</div>
+            <div class="feature-card-title">컨텐츠 즉시캡처</div>
+            <div class="feature-card-desc">블로그·카페 게시물 URL을 등록하고 버튼 한 번으로 즉시 캡처합니다.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 섹션 1: 확장 프로그램 설치 -->
+    <div class="section" id="install">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <div>
+          <div class="section-title">크롬 확장 프로그램 설치</div>
+          <div class="section-desc">처음 한 번만 설치하면 됩니다</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">확장 프로그램 폴더 받기</div>
+            <div class="step-body">
+              담당자에게 <strong>캡처 프로그램 폴더</strong>를 전달받아 내 PC의 원하는 위치에 저장합니다.<br>
+              (예: <code>C:\Users\내이름\Documents\캡처프로그램</code>)
+            </div>
+            <div class="tip"><strong class="tip-icon">💡</strong><strong>중요:</strong> 이 폴더는 확장이 실행되는 동안 계속 필요합니다. 설치 후 폴더를 삭제하거나 이동하면 확장이 작동하지 않습니다.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Chrome 확장 관리 페이지 열기</div>
+            <div class="step-body">
+              Chrome 브라우저를 열고 주소창에 아래를 입력한 뒤 <strong>Enter</strong>를 누릅니다.
+            </div>
+            <div style="margin-top:10px;">
+              <code>chrome://extensions</code>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">개발자 모드 켜기</div>
+            <div class="step-body">
+              확장 관리 페이지 <strong>오른쪽 상단</strong>에 있는 <strong>개발자 모드</strong> 토글을 클릭해서 켭니다.<br>
+              토글이 파란색으로 바뀌면 활성화된 것입니다.
+            </div>
+            <div class="warn-box"><strong>⚠ 주의:</strong> 개발자 모드를 켜야만 폴더로 확장을 설치할 수 있습니다. 반드시 켜주세요.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">확장 프로그램 폴더 불러오기</div>
+            <div class="step-body">
+              개발자 모드를 켜면 상단에 버튼 3개가 나타납니다.<br>
+              <strong>왼쪽의 "압축해제된 확장 프로그램을 로드합니다"</strong> 버튼을 클릭합니다.
+            </div>
+            <div class="substeps">
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>파일 선택 창이 열리면 1단계에서 저장한 <strong>캡처 프로그램 폴더</strong>를 선택합니다.</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>폴더를 선택한 뒤 <strong>"폴더 선택"</strong> 버튼을 클릭합니다.</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>확장 목록에 <strong>"캡처 프로그램"</strong>가 나타나면 설치 완료입니다.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-title">설치 확인</div>
+            <div class="step-body">
+              Chrome 주소창 오른쪽의 <strong>퍼즐 조각(🧩) 아이콘</strong>을 클릭하면 설치된 확장 목록이 나옵니다.<br>
+              <strong>캡처 프로그램</strong>이 보이면 정상적으로 설치된 것입니다.
+            </div>
+            <div class="tip"><strong class="tip-icon">💡</strong>자주 사용한다면 캡처 프로그램 옆의 📌 핀 아이콘을 눌러 주소창 옆에 고정해두세요.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 섹션 2: 웹앱 접속 -->
+    <div class="section" id="webapp">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <div>
+          <div class="section-title">웹앱(관리 페이지) 접속</div>
+          <div class="section-desc">스케줄 설정과 캡처 실행은 여기서 합니다</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">웹앱 주소 접속</div>
+            <div class="step-body">
+              Chrome에서 아래 주소로 접속합니다.
+            </div>
+            <div style="margin-top:10px;">
+              <code>https://jwoooooooooo.github.io/capture/</code>
+            </div>
+            <div class="tip"><strong class="tip-icon">💡</strong>자주 쓰는 페이지이므로 즐겨찾기(Ctrl+D)에 추가해두면 편리합니다.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">확장 연결 확인</div>
+            <div class="step-body">
+              페이지 오른쪽 상단에 <strong style="color:var(--success);">✅ 확장 연결됨</strong>이 표시되면 정상입니다.<br>
+              <strong style="color:var(--warn);">⚠ 확장 프로그램 필요</strong>가 표시되면 아래를 확인하세요.
+            </div>
+            <div class="substeps">
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>확장이 설치됐는지 확인 (<code>chrome://extensions</code>에서 캡처 프로그램 활성화 여부 확인)</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>페이지를 새로고침(F5) 해보세요. 확장이 처음 깨어나는 데 몇 초 걸릴 수 있습니다.</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>그래도 안 되면 <code>chrome://extensions</code>에서 캡처 프로그램의 <strong>새로고침(↺) 버튼</strong>을 클릭 후 웹앱 새로고침</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 섹션 3: 통합검색 자동캡처 -->
+    <div class="section" id="auto">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <div>
+          <div class="section-title">통합검색 자동캡처</div>
+          <div class="section-desc">지정한 시간에 네이버 검색 결과를 자동으로 캡처합니다</div>
+        </div>
+      </div>
+
+      <div style="color:var(--text2);font-size:14px;margin-bottom:20px;padding:14px 18px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);">
+        네이버 통합검색 URL을 등록하고 실행 시간을 설정하면, 매일 그 시간에 자동으로 캡처해서 Google Drive에 저장합니다.<br>
+        주로 <strong style="color:var(--text);">키워드별 블로그 검색 결과</strong>를 정기적으로 기록할 때 사용합니다.
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">네이버 검색 URL 준비</div>
+            <div class="step-body">
+              네이버에서 캡처할 키워드를 검색한 뒤 주소창의 URL을 복사합니다.<br>
+              예: <code>https://search.naver.com/search.naver?query=듀오락+유산균</code>
+            </div>
+            <div class="tip"><strong class="tip-icon">💡</strong>검색 결과 화면에서 <strong>Ctrl+L</strong>을 누르면 주소창 전체가 선택됩니다. 그 상태에서 Ctrl+C로 복사하세요.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">스케줄 추가</div>
+            <div class="step-body">
+              웹앱에서 <strong>"통합검색 자동캡처"</strong> 탭을 클릭한 뒤 <strong>"+ 스케줄 추가"</strong> 버튼을 클릭합니다.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">스케줄 정보 입력</div>
+            <div class="step-body">팝업 창에서 아래 항목을 입력합니다.</div>
+            <div class="substeps">
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span><strong>스케줄 이름:</strong> 알아보기 쉬운 이름 입력 (예: 듀오락_블로그검색)</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span><strong>실행 시간:</strong> 시간 입력 후 <strong>"+ 추가"</strong> 버튼 클릭. 여러 시간대 추가 가능 (예: 09:00, 18:00)</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span><strong>URL 추가:</strong> <strong>"+ URL 추가"</strong> 버튼 클릭 → URL 입력란에 복사한 네이버 검색 URL 붙여넣기 → 키워드란에 키워드 입력 (예: 듀오락)</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>URL은 <strong>여러 개 추가 가능</strong>합니다. 같은 스케줄에 여러 키워드를 묶어서 관리할 수 있습니다.</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>입력 완료 후 <strong>"저장"</strong> 버튼을 클릭합니다.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">스케줄 활성화 확인</div>
+            <div class="step-body">
+              저장된 스케줄 카드 왼쪽의 <strong>토글 스위치</strong>가 켜진(파란색) 상태여야 자동 실행됩니다.<br>
+              꺼져 있으면 클릭해서 활성화합니다.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-title">즉시 실행 (선택)</div>
+            <div class="step-body">
+              예약 시간을 기다리지 않고 지금 바로 실행하려면 스케줄 카드의 <strong>"▶ 지금 실행"</strong> 버튼을 클릭합니다.<br>
+              버튼이 <strong>"⏳ 실행 중..."</strong>으로 바뀌고 <strong>"■ 중지"</strong> 버튼이 나타납니다.
+            </div>
+            <div class="substeps">
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>캡처 중에는 새 창이 자동으로 열렸다 닫히며 진행됩니다. 정상적인 동작입니다.</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>중간에 멈추려면 <strong>"■ 중지"</strong> 버튼을 클릭합니다.</span>
+              </div>
+            </div>
+            <div class="warn-box"><strong>⚠ 주의:</strong> 자동캡처가 실행되는 동안 PC가 켜져 있어야 하고, Chrome이 실행 중이어야 합니다. PC가 꺼지면 예약된 시간에 실행되지 않습니다.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">6</div>
+          <div class="step-content">
+            <div class="step-title">크롭 설정 (선택)</div>
+            <div class="step-body">
+              검색 결과의 특정 영역만 캡처하고 싶다면 <strong>크롭</strong>을 설정합니다.<br>
+              스케줄 카드를 클릭해 펼치면 URL 목록이 나타납니다. 각 URL 오른쪽의 <strong>"크롭 설정"</strong> 버튼을 클릭하세요.<br>
+              자세한 방법은 <a href="#crop" style="color:var(--accent2);">⑤ 크롭 설정</a> 섹션을 참고하세요.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 섹션 4: 컨텐츠 즉시캡처 -->
+    <div class="section" id="instant">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <div>
+          <div class="section-title">컨텐츠 즉시캡처</div>
+          <div class="section-desc">블로그·카페 게시물을 버튼 한 번으로 캡처합니다</div>
+        </div>
+      </div>
+
+      <div style="color:var(--text2);font-size:14px;margin-bottom:20px;padding:14px 18px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);">
+        특정 게시물 URL들을 <strong style="color:var(--text);">묶음</strong>으로 저장해두고, 버튼 하나로 모든 게시물을 순서대로 캡처합니다.<br>
+        네이버 블로그, 네이버 카페 게시물에 주로 사용합니다.
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">캡처할 게시물 URL 수집</div>
+            <div class="step-body">
+              캡처할 네이버 블로그 또는 카페 게시물 페이지를 열고 주소창의 URL을 복사합니다.<br>
+              여러 게시물이 있다면 URL을 메모장에 한 줄에 하나씩 정리해둡니다.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">묶음 추가</div>
+            <div class="step-body">
+              웹앱에서 <strong>"컨텐츠 즉시캡처"</strong> 탭을 클릭한 뒤 <strong>"+ 묶음 추가"</strong> 버튼을 클릭합니다.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">묶음 정보 입력</div>
+            <div class="step-body">팝업 창에서 아래 항목을 입력합니다.</div>
+            <div class="substeps">
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span><strong>묶음 이름:</strong> 알아보기 쉬운 이름 입력 (예: 듀오락_블로그포스팅)</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span><strong>URL 목록:</strong> 캡처할 게시물 URL을 입력란에 붙여넣습니다. 여러 개일 경우 <strong>한 줄에 하나씩</strong> 입력합니다.</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>입력 완료 후 <strong>"저장"</strong> 버튼을 클릭합니다.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">크롭 설정 (권장)</div>
+            <div class="step-body">
+              게시물의 본문 영역만 캡처하려면 크롭을 먼저 설정합니다.<br>
+              묶음 카드의 <strong>"✂ 크롭 설정"</strong> 버튼을 클릭하세요.<br>
+              자세한 방법은 <a href="#crop" style="color:var(--accent2);">⑤ 크롭 설정</a> 섹션을 참고하세요.
+            </div>
+            <div class="tip"><strong class="tip-icon">💡</strong>크롭을 설정하지 않으면 페이지 전체가 캡처됩니다. 게시물 본문만 필요하다면 크롭을 먼저 설정하는 것을 권장합니다.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-title">즉시 캡처 실행</div>
+            <div class="step-body">
+              묶음 카드의 <strong>"▶ 즉시 캡처"</strong> 버튼을 클릭합니다.<br>
+              등록된 URL을 순서대로 자동으로 열어 캡처하고 Google Drive에 저장합니다.
+            </div>
+            <div class="substeps">
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>캡처 중에는 새 창이 자동으로 열렸다 닫히며 진행됩니다. 정상적인 동작입니다.</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>중간에 멈추려면 <strong>"■ 중지"</strong> 버튼을 클릭합니다.</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>완료 후 결과는 <strong>"캡처 로그"</strong> 탭에서 확인할 수 있습니다.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 섹션 5: 크롭 설정 -->
+    <div class="section" id="crop">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <div>
+          <div class="section-title">크롭 설정</div>
+          <div class="section-desc">캡처 영역을 좌우로 잘라 원하는 부분만 저장합니다</div>
+        </div>
+      </div>
+
+      <div style="color:var(--text2);font-size:14px;margin-bottom:20px;padding:14px 18px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);">
+        크롭은 <strong style="color:var(--text);">좌우 범위</strong>를 지정합니다. 페이지에서 클릭 2번으로 시작점과 끝점을 정합니다.
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">크롭 설정 버튼 클릭</div>
+            <div class="step-body">
+              스케줄 카드(자동캡처)의 경우 카드를 펼쳐 URL 옆 <strong>"크롭 설정"</strong> 버튼을 클릭합니다.<br>
+              묶음 카드(즉시캡처)의 경우 카드의 <strong>"✂ 크롭 설정"</strong> 버튼을 클릭합니다.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">크롭 탭이 자동으로 열림</div>
+            <div class="step-body">
+              해당 URL의 페이지가 새 탭으로 자동 열립니다.<br>
+              페이지 상단에 파란색 가이드 문구가 나타납니다:
+            </div>
+            <div style="margin-top:10px;padding:10px 16px;background:rgba(79,110,247,0.1);border:1px solid rgba(79,110,247,0.3);border-radius:8px;font-size:13px;color:#a5b4fc;font-family:'JetBrains Mono',monospace;">
+              1번째 클릭: 시작 X위치 (왼쪽) | 2번째 클릭: 끝 X위치 (오른쪽) | ESC: 취소
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">1번째 클릭: 시작 위치 설정</div>
+            <div class="step-body">
+              캡처를 시작할 <strong>왼쪽 경계</strong> 위치를 클릭합니다.<br>
+              클릭하면 가이드 문구가 <strong style="color:var(--success);">"✅ 시작 위치 설정!"</strong>으로 바뀝니다.
+            </div>
+            <div class="tip"><strong class="tip-icon">💡</strong>마우스를 움직이면 파란 세로선이 따라옵니다. 이 선이 잘릴 위치입니다. 원하는 위치에서 클릭하세요.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">2번째 클릭: 끝 위치 설정</div>
+            <div class="step-body">
+              캡처를 끝낼 <strong>오른쪽 경계</strong> 위치를 클릭합니다.<br>
+              클릭하면 <strong style="color:var(--success);">"✅ 크롭 영역이 저장되었습니다!"</strong> 문구가 나타나고 탭이 자동으로 닫힙니다.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-title">웹앱에서 반영 확인</div>
+            <div class="step-body">
+              웹앱 탭으로 돌아오면 자동으로 업데이트됩니다.<br>
+              묶음/스케줄 카드에 <strong style="color:var(--success);">✂ 크롭: XXX~XXXpx</strong> 형태로 표시되면 저장 완료입니다.
+            </div>
+            <div class="tip"><strong class="tip-icon">💡</strong>크롭 영역을 다시 설정하고 싶으면 같은 버튼을 다시 클릭하면 됩니다. 기존 영역이 하늘색으로 표시되며, 새로 클릭하면 덮어씌워집니다.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 섹션 6: Drive 설정 -->
+    <div class="section" id="drive">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <div>
+          <div class="section-title">Drive 설정</div>
+          <div class="section-desc">캡처 이미지가 저장될 Google Drive를 연결합니다</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Drive 설정 탭으로 이동</div>
+            <div class="step-body">
+              웹앱 상단 탭에서 <strong>"Drive 설정"</strong>을 클릭합니다.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Google Drive 연결</div>
+            <div class="step-body">
+              <strong>"Google Drive 연결"</strong> 버튼을 클릭합니다.<br>
+              <strong style="color:var(--success);">"Apps Script 연결됨 ✓"</strong>이 표시되면 연결 완료입니다.
+            </div>
+            <div class="tip"><strong class="tip-icon">💡</strong>Drive 연결은 <strong>처음 한 번만</strong> 설정하면 됩니다. 이후 캡처된 이미지는 자동으로 지정된 Drive 폴더에 저장됩니다.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 섹션 7: 캡처 로그 -->
+    <div class="section" id="log">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <div>
+          <div class="section-title">캡처 로그</div>
+          <div class="section-desc">캡처 결과를 확인합니다</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">로그 확인</div>
+            <div class="step-body">
+              웹앱 상단 탭에서 <strong>"캡처 로그"</strong>를 클릭합니다.<br>
+              최근 100건의 캡처 기록이 표시됩니다.
+            </div>
+            <div class="substeps">
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span><strong style="color:var(--success);">✓ (초록)</strong> : 캡처 성공. 파일명이 표시됩니다.</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span><strong style="color:#ff6b6b;">✕ (빨강)</strong> : 캡처 실패. 오류 메시지를 확인하세요.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Drive에서 파일 확인</div>
+            <div class="step-body">
+              캡처된 이미지는 Google Drive의 지정 폴더에 아래 형식으로 저장됩니다.<br>
+              <code>스케줄명_키워드_날짜시간.jpg</code>
+            </div>
+            <div class="tip"><strong class="tip-icon">💡</strong>예: <code>듀오락모니터링_듀오락_20260403_1430.jpg</code></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="section" id="faq">
+      <div class="section-header">
+        <div class="section-num" style="background:var(--bg3);border:1px solid var(--border2);">?</div>
+        <div>
+          <div class="section-title">자주 묻는 질문</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num" style="border-radius:6px;">Q</div>
+          <div class="step-content">
+            <div class="step-title">캡처 중에 다른 작업을 해도 되나요?</div>
+            <div class="step-body">
+              가능합니다. 캡처는 백그라운드에서 진행됩니다. 다만 캡처 중에 창이 자동으로 열렸다 닫히므로 화면이 잠깐 전환될 수 있습니다.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num" style="border-radius:6px;">Q</div>
+          <div class="step-content">
+            <div class="step-title">자동캡처 예약 시간에 PC가 꺼져 있으면 어떻게 되나요?</div>
+            <div class="step-body">
+              해당 시간의 캡처는 건너뜁니다. PC가 켜지면 다음 예약 시간에 정상 실행됩니다.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num" style="border-radius:6px;">Q</div>
+          <div class="step-content">
+            <div class="step-title">캡처 이미지가 Drive에 저장되지 않아요.</div>
+            <div class="step-body">
+              Drive 설정 탭에서 <strong>"Apps Script 연결됨 ✓"</strong>이 표시되는지 확인하세요.<br>
+              연결이 끊긴 경우 <strong>"Google Drive 연결"</strong> 버튼을 다시 클릭해 재연결합니다.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num" style="border-radius:6px;">Q</div>
+          <div class="step-content">
+            <div class="step-title">확장 프로그램을 업데이트하려면?</div>
+            <div class="step-body">
+              담당자에게 새 파일을 받아 기존 폴더에 덮어씌운 뒤,<br>
+              <code>chrome://extensions</code>에서 캡처 프로그램의 <strong>새로고침(↺) 버튼</strong>을 클릭하면 됩니다.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num" style="border-radius:6px;">Q</div>
+          <div class="step-content">
+            <div class="step-title">웹앱에 데이터가 사라졌어요.</div>
+            <div class="step-body">
+              스케줄·묶음 데이터는 각 PC의 확장 프로그램에 저장됩니다.<br>
+              다른 PC에서 접속하면 해당 PC에 등록된 데이터가 표시됩니다. PC별로 개별 등록이 필요합니다.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="text-align:center;color:var(--text2);font-size:13px;padding:32px 0 16px;border-top:1px solid var(--border);">
+      문의사항은 담당자에게 연락해주세요.
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // 사이드바 active 처리
+  const sections = document.querySelectorAll('.section[id]');
+  const navLinks = document.querySelectorAll('.sidebar nav a');
+
+  window.addEventListener('scroll', function() {
+    let current = '';
+    sections.forEach(function(s) {
+      if (window.scrollY >= s.offsetTop - 100) current = s.id;
+    });
+    navLinks.forEach(function(a) {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  });
+</script>
+</body>
+</html>
