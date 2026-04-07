@@ -334,13 +334,14 @@
     <nav>
       <div class="nav-section">설치</div>
       <a href="#install">① 확장 프로그램 설치</a>
-      <a href="#webapp">② 웹앱 접속</a>
+      <a href="#extid">② 확장 ID 설정</a>
+      <a href="#webapp">③ 웹앱 접속</a>
       <div class="nav-section">기능</div>
-      <a href="#auto">③ 통합검색 자동캡처</a>
-      <a href="#instant">④ 컨텐츠 즉시캡처</a>
-      <a href="#crop">⑤ 크롭 설정</a>
-      <a href="#drive">⑥ Drive 설정</a>
-      <a href="#log">⑦ 캡처 로그</a>
+      <a href="#auto">④ 통합검색 자동캡처</a>
+      <a href="#instant">⑤ 컨텐츠 즉시캡처</a>
+      <a href="#crop">⑥ 크롭 설정</a>
+      <a href="#drive">⑦ Drive 설정</a>
+      <a href="#log">⑧ 캡처 로그</a>
       <div class="nav-section">참고</div>
       <a href="#faq">자주 묻는 질문</a>
     </nav>
@@ -472,10 +473,102 @@
       </div>
     </div>
 
-    <!-- 섹션 2: 웹앱 접속 -->
-    <div class="section" id="webapp">
+    <!-- 섹션 2: 확장 ID 설정 -->
+    <div class="section" id="extid">
       <div class="section-header">
         <div class="section-num">2</div>
+        <div>
+          <div class="section-title">확장 ID 설정</div>
+          <div class="section-desc">웹앱과 확장 프로그램을 연결합니다</div>
+        </div>
+      </div>
+
+      <div style="color:var(--text2);font-size:14px;margin-bottom:20px;padding:14px 18px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);">
+        PC마다 확장 프로그램 ID가 다르기 때문에 처음 한 번 설정이 필요합니다.<br>
+        웹앱 상단에 <strong style="color:var(--warn);">⚠ 확장 ID 미설정</strong> 경고가 표시되면 아래 방법으로 설정해주세요.
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">내 확장 ID 확인</div>
+            <div class="step-body">
+              Chrome 주소창에 아래를 입력하고 Enter를 누릅니다.
+            </div>
+            <div style="margin-top:10px;"><code>chrome://extensions</code></div>
+            <div class="substeps" style="margin-top:12px;">
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>확장 목록에서 <strong>캡처 프로그램</strong>을 찾습니다.</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>카드 아래쪽에 <strong>ID: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</strong> 형태의 긴 영문자가 표시됩니다.</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>이 ID 전체를 드래그해서 복사합니다 (Ctrl+C).</span>
+              </div>
+            </div>
+            <div class="tip"><strong class="tip-icon">💡</strong>ID가 보이지 않으면 카드의 <strong>"세부정보"</strong> 버튼을 클릭하면 확인할 수 있습니다.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">웹앱에 ID 입력</div>
+            <div class="step-body">
+              웹앱(<code>https://jwoooooooooo.github.io/capture/</code>) 상단의 <strong style="color:var(--warn);">⚠ 확장 ID 미설정</strong> 옆 입력란에 복사한 ID를 붙여넣습니다 (Ctrl+V).
+            </div>
+            <div class="substeps" style="margin-top:12px;">
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>ID 붙여넣기 후 <strong>"저장"</strong> 버튼을 클릭합니다.</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>잠시 후 <strong style="color:var(--success);">✅ 확장 연결됨</strong>으로 바뀌면 설정 완료입니다.</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>이 설정은 이 PC의 이 브라우저에 저장되므로 <strong>다음 접속부터는 자동으로 연결</strong>됩니다.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">연결 실패 시</div>
+            <div class="step-body">
+              ID를 입력했는데 <strong style="color:#ff6b6b;">✕ 연결 실패</strong>가 뜨면 ID가 잘못 입력된 거예요.
+            </div>
+            <div class="substeps" style="margin-top:12px;">
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span><code>chrome://extensions</code>에서 ID를 다시 확인하고 재입력합니다.</span>
+              </div>
+              <div class="substep">
+                <span class="substep-arrow">→</span>
+                <span>확장이 비활성화되어 있다면 토글을 켜고 다시 시도합니다.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 섹션 3: 웹앱 접속 -->
+    <div class="section" id="webapp">
+      <div class="section-header">
+        <div class="section-num">3</div>
         <div>
           <div class="section-title">웹앱(관리 페이지) 접속</div>
           <div class="section-desc">스케줄 설정과 캡처 실행은 여기서 합니다</div>
@@ -526,10 +619,10 @@
       </div>
     </div>
 
-    <!-- 섹션 3: 통합검색 자동캡처 -->
+    <!-- 섹션 4: 통합검색 자동캡처 -->
     <div class="section" id="auto">
       <div class="section-header">
-        <div class="section-num">3</div>
+        <div class="section-num">4</div>
         <div>
           <div class="section-title">통합검색 자동캡처</div>
           <div class="section-desc">지정한 시간에 네이버 검색 결과를 자동으로 캡처합니다</div>
@@ -651,10 +744,10 @@
       </div>
     </div>
 
-    <!-- 섹션 4: 컨텐츠 즉시캡처 -->
+    <!-- 섹션 5: 컨텐츠 즉시캡처 -->
     <div class="section" id="instant">
       <div class="section-header">
-        <div class="section-num">4</div>
+        <div class="section-num">5</div>
         <div>
           <div class="section-title">컨텐츠 즉시캡처</div>
           <div class="section-desc">블로그·카페 게시물을 버튼 한 번으로 캡처합니다</div>
@@ -758,10 +851,10 @@
       </div>
     </div>
 
-    <!-- 섹션 5: 크롭 설정 -->
+    <!-- 섹션 6: 크롭 설정 -->
     <div class="section" id="crop">
       <div class="section-header">
-        <div class="section-num">5</div>
+        <div class="section-num">6</div>
         <div>
           <div class="section-title">크롭 설정</div>
           <div class="section-desc">캡처 영역을 좌우로 잘라 원하는 부분만 저장합니다</div>
@@ -843,10 +936,10 @@
       </div>
     </div>
 
-    <!-- 섹션 6: Drive 설정 -->
+    <!-- 섹션 7: Drive 설정 -->
     <div class="section" id="drive">
       <div class="section-header">
-        <div class="section-num">6</div>
+        <div class="section-num">7</div>
         <div>
           <div class="section-title">Drive 설정</div>
           <div class="section-desc">캡처 이미지가 저장될 Google Drive를 연결합니다</div>
@@ -880,10 +973,10 @@
       </div>
     </div>
 
-    <!-- 섹션 7: 캡처 로그 -->
+    <!-- 섹션 8: 캡처 로그 -->
     <div class="section" id="log">
       <div class="section-header">
-        <div class="section-num">7</div>
+        <div class="section-num">8</div>
         <div>
           <div class="section-title">캡처 로그</div>
           <div class="section-desc">캡처 결과를 확인합니다</div>

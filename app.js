@@ -1,6 +1,5 @@
 // SNS Monitor WebApp - app.js
 
-const EXT_ID = 'klpcoocimooedofbgmnbmnfhcofichkd';
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzb2CDFE3zQqBvvsOttfsQKhpyNbjlcIVhs9EUxNaPap0Qxe91HmRsIySaAJZQFZkk/exec';
 
 let schedules = [];
@@ -13,10 +12,16 @@ let modalTimes = [];
 let modalUrls = [];
 let groupModalUrls = [];
 
+function getExtId() {
+  return localStorage.getItem('ext_id') || '';
+}
+
 function sendToExt(msg) {
   return new Promise(function(resolve, reject) {
     if (!window.chrome || !chrome.runtime || !chrome.runtime.sendMessage) { reject(new Error('NO_EXT')); return; }
-    chrome.runtime.sendMessage(EXT_ID, msg, function(resp) {
+    const id = getExtId();
+    if (!id) { reject(new Error('NO_ID')); return; }
+    chrome.runtime.sendMessage(id, msg, function(resp) {
       if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
       else if (resp && resp.error) reject(new Error(resp.error));
       else resolve(resp);
@@ -25,27 +30,70 @@ function sendToExt(msg) {
 }
 
 async function init() {
+  renderExtIdInput();
   await checkExtension();
   await loadData();
 }
 
+function renderExtIdInput() {
+  const el = document.getElementById('extStatus');
+  const savedId = getExtId();
+  if (!savedId) {
+    el.innerHTML =
+      '<span style="color:var(--warn);margin-right:8px;">⚠ 확장 ID 미설정</span>' +
+      '<input id="extIdInput" type="text" placeholder="확장 ID 입력" style="background:var(--bg2);border:1px solid var(--warn);color:var(--text);padding:4px 8px;border-radius:6px;font-size:12px;width:260px;outline:none;">' +
+      '<button id="extIdSaveBtn" style="margin-left:6px;background:var(--accent);border:none;color:white;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;">저장</button>';
+    el.style.borderColor = 'rgba(255,176,64,0.3)';
+    document.getElementById('extIdSaveBtn').onclick = async function() {
+      const val = document.getElementById('extIdInput').value.trim();
+      if (!val) return;
+      localStorage.setItem('ext_id', val);
+      renderExtIdInput();
+      await checkExtension();
+      await loadData();
+    };
+    document.getElementById('extIdInput').onkeypress = function(e) {
+      if (e.key === 'Enter') document.getElementById('extIdSaveBtn').click();
+    };
+  }
+}
+
 async function checkExtension() {
   const el = document.getElementById('extStatus');
-  // 최대 5번, 1초 간격으로 재시도 (service worker 깨어날 때까지 대기)
+  if (!getExtId()) return;
   for (var i = 0; i < 5; i++) {
     try {
       await sendToExt({ type: 'GET_SCHEDULES' });
-      el.textContent = '✅ 확장 연결됨';
+      el.innerHTML = '✅ 확장 연결됨 <button id="extIdResetBtn" style="margin-left:8px;background:none;border:1px solid var(--border2);color:var(--text2);padding:2px 8px;border-radius:5px;font-size:11px;cursor:pointer;">ID 변경</button>';
       el.style.color = 'var(--success)';
       el.style.borderColor = 'rgba(60,200,100,0.3)';
+      document.getElementById('extIdResetBtn').onclick = function() {
+        localStorage.removeItem('ext_id');
+        renderExtIdInput();
+      };
       return;
     } catch(e) {
       if (i < 4) await new Promise(function(r) { setTimeout(r, 1000); });
     }
   }
-  el.textContent = '⚠ 확장 프로그램 필요';
-  el.style.color = 'var(--warn)';
-  el.style.borderColor = 'rgba(255,176,64,0.3)';
+  // 연결 실패 시 ID 재입력 유도
+  localStorage.removeItem('ext_id');
+  el.innerHTML =
+    '<span style="color:var(--error);margin-right:8px;">✕ 연결 실패 — ID를 다시 확인해주세요</span>' +
+    '<input id="extIdInput" type="text" placeholder="확장 ID 재입력" style="background:var(--bg2);border:1px solid var(--error);color:var(--text);padding:4px 8px;border-radius:6px;font-size:12px;width:260px;outline:none;">' +
+    '<button id="extIdSaveBtn" style="margin-left:6px;background:var(--accent);border:none;color:white;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;">저장</button>';
+  el.style.borderColor = 'rgba(255,80,96,0.3)';
+  document.getElementById('extIdSaveBtn').onclick = async function() {
+    const val = document.getElementById('extIdInput').value.trim();
+    if (!val) return;
+    localStorage.setItem('ext_id', val);
+    renderExtIdInput();
+    await checkExtension();
+    await loadData();
+  };
+  document.getElementById('extIdInput').onkeypress = function(e) {
+    if (e.key === 'Enter') document.getElementById('extIdSaveBtn').click();
+  };
 }
 
 async function loadData() {
